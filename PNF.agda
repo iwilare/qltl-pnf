@@ -1,6 +1,6 @@
 {-# OPTIONS --guardedness #-}
 
-module QLTL where
+module PNF where
 
 open import Axiom.DoubleNegationElimination
 open import Axiom.ExcludedMiddle
@@ -26,43 +26,51 @@ open import Counterpart
 open import Predicates
 open import Negation
 
-data QLTL : ℕ → Set where
-    true  : ∀ {n} → QLTL n
-    !_    : ∀ {n} → QLTL n → QLTL n
-    _∨_   : ∀ {n} → QLTL n → QLTL n → QLTL n
-    ∃<>_  : ∀ {n} → QLTL (suc n) → QLTL n
-    ◯∃_   : ∀ {n} → QLTL n → QLTL n
-    _U∃_  : ∀ {n} → QLTL n → QLTL n → QLTL n
-    _W∃_  : ∀ {n} → QLTL n → QLTL n → QLTL n
+data PNF : ℕ → Set where
+    true  : ∀ {n} → PNF n
+    false : ∀ {n} → PNF n
+    _∧_   : ∀ {n} → PNF n → PNF n → PNF n
+    _∨_   : ∀ {n} → PNF n → PNF n → PNF n
+    ∃<>_  : ∀ {n} → PNF (suc n) → PNF n
+    ∀<>_  : ∀ {n} → PNF (suc n) → PNF n
+    ◯∃_   : ∀ {n} → PNF n → PNF n
+    ◯∀_   : ∀ {n} → PNF n → PNF n
+    _U∃_  : ∀ {n} → PNF n → PNF n → PNF n
+    _W∃_  : ∀ {n} → PNF n → PNF n → PNF n
+    _U∀_  : ∀ {n} → PNF n → PNF n → PNF n
+    _W∀_  : ∀ {n} → PNF n → PNF n → PNF n
 
-false : ∀ {n} → QLTL n
-false = ! true
-
-♢∃ : ∀ {n} → QLTL n → QLTL n
+♢∃ : ∀ {n} → PNF n → PNF n
 ♢∃ ϕ = true U∃ ϕ
-
-□∃ : ∀ {n} → QLTL n → QLTL n
-□∃ ϕ = ϕ W∃ (! true)
-
-_∧_ : ∀ {n} → QLTL n → QLTL n → QLTL n
-ϕ₁ ∧ ϕ₂ = ! ((! ϕ₁) ∨ (! ϕ₂))
+□∃ : ∀ {n} → PNF n → PNF n
+□∃ ϕ = ϕ W∃ false
+♢∀ : ∀ {n} → PNF n → PNF n
+♢∀ ϕ = true U∀ ϕ
+□∀ : ∀ {n} → PNF n → PNF n
+□∀ ϕ = ϕ W∀ false
 
 infix 10 _,_⊨_
-infix 30 !_
 
 interleaved mutual
-  _,_⊨_ : ∀ {A : Set} {n} → Elements n A → CounterpartTrace A → QLTL n → Set
-  at∃ : ∀ {A : Set} {n} → Elements n A → CounterpartTrace A → QLTL n → ℕ → Set
+  _,_⊨_ : ∀ {A : Set} {n} → Elements n A → CounterpartTrace A → PNF n → Set
+  at∃ : ∀ {A : Set} {n} → Elements n A → CounterpartTrace A → PNF n → ℕ → Set
+  at∀ : ∀ {A : Set} {n} → Elements n A → CounterpartTrace A → PNF n → ℕ → Set
 
   at∃ μ σ ϕ i = ∃C∈ ↑ (C≤ i σ) μ ⇒ (_, s i σ ⊨ ϕ)
+  at∀ μ σ ϕ i = ∀C∈ ↑ (C≤ i σ) μ ⇒ (_, s i σ ⊨ ϕ)
 
   μ , σ ⊨ true = ⊤
-  μ , σ ⊨ ! ϕ = μ , σ ⊨ ϕ → ⊥
+  μ , σ ⊨ false = ⊥
+  μ , σ ⊨ (ϕ₁ ∧ ϕ₂) = μ , σ ⊨ ϕ₁ × μ , σ ⊨ ϕ₂
   μ , σ ⊨ (ϕ₁ ∨ ϕ₂) = μ , σ ⊨ ϕ₁ ⊎ μ , σ ⊨ ϕ₂
   μ , σ ⊨ (∃<> ϕ) = ∃[ x ] (x , μ) , σ ⊨ ϕ
+  μ , σ ⊨ (∀<> ϕ) = ∀ x → (x , μ) , σ ⊨ ϕ
   μ , σ ⊨ (◯∃ ϕ) = at∃ μ σ ϕ 1
+  μ , σ ⊨ (◯∀ ϕ) = at∀ μ σ ϕ 1
   μ , σ ⊨ (ϕ₁ U∃ ϕ₂) = at∃ μ σ ϕ₁ until     at∃ μ σ ϕ₂
   μ , σ ⊨ (ϕ₁ W∃ ϕ₂) = at∃ μ σ ϕ₁ weakUntil at∃ μ σ ϕ₂
+  μ , σ ⊨ (ϕ₁ U∀ ϕ₂) = at∀ μ σ ϕ₁ until     at∀ μ σ ϕ₂
+  μ , σ ⊨ (ϕ₁ W∀ ϕ₂) = at∀ μ σ ϕ₁ weakUntil at∀ μ σ ϕ₂
 
-_≡_ : ∀ {n} → QLTL n → QLTL n → Set₁
+_≡_ : ∀ {n} → PNF n → PNF n → Set₁
 ϕ₁ ≡ ϕ₂ = ∀ {A} {σ : CounterpartTrace A} {μ} → (μ , σ ⊨ ϕ₁ → μ , σ ⊨ ϕ₂) × (μ , σ ⊨ ϕ₂ → μ , σ ⊨ ϕ₁)

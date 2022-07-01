@@ -83,10 +83,10 @@ Elements (suc n) A = A × Elements n A
 postulate
   sorry : ∀ {a : Set} → a
 
-CRUCIAL-LEMMA : ∀ {A B C} {f : A → Maybe B} {g : B → Maybe C} {n} (μ : Elements n A)
+↑-morphism : ∀ {A B C} {f : A → Maybe B} {g : B → Maybe C} {n} (μ : Elements n A)
               → ↑ (f >=> g) μ ≣ (↑ f >=> ↑ g) μ
-CRUCIAL-LEMMA {n = zero} μ = refl
-CRUCIAL-LEMMA {f = f} {g = g} {n = suc n} (x , e) rewrite CRUCIAL-LEMMA {f = f} {g = g} {n = n} e = sorry
+↑-morphism {n = zero} μ = refl
+↑-morphism {f = f} {g = g} {n = suc n} (x , e) rewrite ↑-morphism {f = f} {g = g} {n = n} e = sorry
 
 ↑-ext-cong : ∀ {n} {A B : Set} {f g : A → Maybe B} {μ : Elements n A}
            → (∀ x → f x ≣ g x)
@@ -103,14 +103,14 @@ thm : ∀ {k} {A} {σ : CounterpartTrace A} {n} {μ : Elements k _} {μ′}
     → ↑ (C≤ n (tail σ)) μ′
     ≣ ↑ (C≤ (suc n) σ) μ
 thm {_} {_} {σ} {n} {μ} eq rewrite ↑-ext-cong {μ = μ} (monad-law1 {f = rel σ})
-                      | CRUCIAL-LEMMA {f = rel σ} {g = C≤ n (tail σ)} μ
+                      | ↑-morphism {f = rel σ} {g = C≤ n (tail σ)} μ
                       | eq = refl
 
 thm-n : ∀ {k} {A} {σ : CounterpartTrace A} {n} {μ : Elements k _}
     → ↑ (C≤ 1 σ) μ ≣ nothing
     → ↑ (C≤ (suc n) σ) μ ≣ nothing
 thm-n {_} {_} {σ} {n} {μ} eq rewrite ↑-ext-cong {μ = μ} (monad-law1 {f = rel σ})
-                    | CRUCIAL-LEMMA {f = rel σ} {g = C≤ n (tail σ)} μ
+                    | ↑-morphism {f = rel σ} {g = C≤ n (tail σ)} μ
                     | eq = refl
 
 ∀C∈_⇒_ : ∀ {A : Set} → Maybe A → (A → Set) → Set
@@ -152,6 +152,14 @@ disjunct∀ {x = nothing} = λ _ → tt , tt
 disjunct∃ : ∀ {S : Set} → {A B : S → Set} → {x : Maybe S} → (∃C∈ x ⇒ (λ x → A x × B x)) → (∃C∈ x ⇒ A) × (∃C∈ x ⇒ B)
 disjunct∃ {x = just x} = λ z → z
 disjunct∃ {x = nothing} = λ z → z , z
+
+imply∀ : ∀ {S : Set} → {A B : S → Set} → {x : Maybe S} → (∀ {p} → A p → B p) → (∀C∈ x ⇒ A) → (∀C∈ x ⇒ B)
+imply∀ {x = just x} = λ z → z
+imply∀ {x = nothing} = λ _ _ → tt
+
+imply∃ : ∀ {S : Set} → {A B : S → Set} → {x : Maybe S} → (∀ {p} → A p → B p) → (∃C∈ x ⇒ A) → (∃C∈ x ⇒ B)
+imply∃ {x = just x} = λ z → z
+imply∃ {x = nothing} = λ _ z → z
 
 lift-exists : ∀ {n} {A} {μ : Elements n A} {P}
      → P μ

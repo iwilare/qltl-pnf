@@ -1,6 +1,6 @@
 {-# OPTIONS --guardedness #-}
 
-module QLTL.Equivalences where
+module PNF.Equivalences where
 
 open import Data.Empty
 open import Data.Fin using (Fin)
@@ -21,33 +21,35 @@ open import Relation.Nullary.Negation using (¬∃⟶∀¬; contraposition)
 
 open import Predicates
 open import Counterpart
-open import QLTL-Full
+open import PNF
 
-U∃-equivalence : ∀ {n} {ϕ₁ ϕ₂ : QLTL-Full n} → (ϕ₁ U∃ ϕ₂) ≡ ((ϕ₁ W∃ ϕ₂) ∧ ♢∃ ϕ₂)
-U∃-equivalence {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
+U∀-equivalence : ∀ {n} {ϕ₁ ϕ₂ : PNF n} → (ϕ₁ U∀ ϕ₂) ≡ ((ϕ₁ W∀ ϕ₂) ∧ ♢∀ ϕ₂)
+U∀-equivalence {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
   where
 
-    ⇒ : μ , σ ⊨ (ϕ₁ U∃ ϕ₂) → μ , σ ⊨ (ϕ₁ W∃ ϕ₂) ∧ ♢∃ ϕ₂
+    ⇒ : μ , σ ⊨ (ϕ₁ U∀ ϕ₂) → μ , σ ⊨ (ϕ₁ W∀ ϕ₂) ∧ ♢∀ ϕ₂
     ⇒ (n , ϕ₁<i , ϕ₂n) = inj₁ (n , ϕ₁<i , ϕ₂n) , n , true-before-n , ϕ₂n
       where
-        true-before-n : at∃ μ σ true before n
-        true-before-n i x with ↑ (C≤ i σ) μ | ϕ₁<i i x
-        ... | just μ | _ = tt
+        true-before-n : at∀ μ σ true before n
+        true-before-n i x with ↑ (C≤ i σ) μ
+        ... | nothing = tt
+        ... | just μ = tt
 
-    ⇐ : μ , σ ⊨ (ϕ₁ W∃ ϕ₂) ∧ ♢∃ ϕ₂ → μ , σ ⊨ (ϕ₁ U∃ ϕ₂)
+    ⇐ : μ , σ ⊨ (ϕ₁ W∀ ϕ₂) ∧ ♢∀ ϕ₂ → μ , σ ⊨ ϕ₁ U∀ ϕ₂
     ⇐ (inj₁ u , _) = u
     ⇐ (inj₂ a , n , _ , ϕ₂n) = n , (λ i _ → a i) , ϕ₂n
 
-W∃-equivalence : ∀ {n} {ϕ₁ ϕ₂ : QLTL-Full n} → (ϕ₁ W∃ ϕ₂) ≡ ((ϕ₁ U∃ ϕ₂) ∨ □∃ ϕ₁)
-W∃-equivalence {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
+W∀-equivalence : ∀ {n} {ϕ₁ ϕ₂ : PNF n} → (ϕ₁ W∀ ϕ₂) ≡ ((ϕ₁ U∀ ϕ₂) ∨ □∀ ϕ₁)
+W∀-equivalence {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
   where
-    ⇒ : μ , σ ⊨ (ϕ₁ W∃ ϕ₂) → μ , σ ⊨ (ϕ₁ U∃ ϕ₂) ∨ □∃ ϕ₁
+    ⇒ : μ , σ ⊨ (ϕ₁ W∀ ϕ₂) → μ , σ ⊨ (ϕ₁ U∀ ϕ₂) ∨ □∀ ϕ₁
     ⇒ (inj₁ x) = inj₁ x
     ⇒ (inj₂ y) = inj₂ (inj₂ y)
 
-    ⇐ : μ , σ ⊨ (ϕ₁ U∃ ϕ₂) ∨ □∃ ϕ₁ → μ , σ ⊨ ϕ₁ W∃ ϕ₂
+    ⇐ : μ , σ ⊨ (ϕ₁ U∀ ϕ₂) ∨ □∀ ϕ₁ → μ , σ ⊨ ϕ₁ W∀ ϕ₂
     ⇐ (inj₁ x) = inj₁ x
-    ⇐ (inj₂ (inj₁ (n , ϕ₁<i , ϕ₂n))) with ↑ (C≤ n σ) μ
-    ⇐ (inj₂ (inj₁ (n , ϕ₁<i , ()))) | just x
-    ⇐ (inj₂ (inj₁ (n , ϕ₁<i , ()))) | nothing
+    ⇐ (inj₂ (inj₁ (n , ϕ₁<i , ϕ₂n))) with ↑ (C≤ n σ) μ | inspect (↑ (C≤ n σ)) μ
+    ... | nothing | ≣: eq = inj₁ (n , ϕ₁<i , ∀ϕ₂)
+       where ∀ϕ₂ : ∀C∈ ↑ (C≤ n σ) μ ⇒ (_, s n σ ⊨ ϕ₂)
+             ∀ϕ₂ rewrite eq = tt
     ⇐ (inj₂ (inj₂ y)) = inj₂ y
