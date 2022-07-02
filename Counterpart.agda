@@ -18,7 +18,7 @@ open import Function using (_∘_)
 open import Function using (id)
 open import Level using (0ℓ; Level)
 open import Relation.Binary.Definitions
-open import Relation.Binary.PropositionalEquality using (subst; inspect; refl; sym) renaming (_≡_ to _≣_; [_] to ≣:)
+open import Relation.Binary.PropositionalEquality using (trans; subst; inspect; refl; sym) renaming (_≡_ to _≣_; [_] to ≣:)
 open import Relation.Nullary
 open import Relation.Nullary.Negation using (¬∃⟶∀¬; contraposition)
 
@@ -80,13 +80,43 @@ Elements (suc n) A = A × Elements n A
 ↑ {n = zero} f tt = just tt
 ↑ {n = suc n} f (x , e) = <*,*> f (↑ f) x e
 
-postulate
-  sorry : ∀ {a : Set} → a
+<*,*>-ext : ∀ {A B C D} {f f′ : A → Maybe B} {g g′ : C → Maybe D} {x e}
+          → (∀ {x} → f x ≣ f′ x)
+          → (∀ {x} → g x ≣ g′ x)
+          → <*,*> f g x e
+          ≣ <*,*> f′ g′ x e
+<*,*>-ext {f = f} {g = g} {x = x} {e = e} eq1 eq2 rewrite eq1 {x} | eq2 {e} = refl
+
+<*,*>-dec : ∀ {A B C D E F} {f : A → Maybe B} {f′ : B → Maybe C} {g : D → Maybe E} {g′ : E → Maybe F} {x e}
+          → (<*,*> (f >=> f′) (g >=> g′)) x e
+          ≣ ((λ (a , b) → <*,*> f g a b) >=> (λ (a , b) → <*,*> f′ g′ a b)) (x , e)
+<*,*>-dec {f = f} {f′ = f′} {g = g} {g′ = g′} {x = x} {e = e} with f x | g e
+... | nothing | just x₁ = refl
+... | nothing | nothing = refl
+... | just x₁ | nothing with f′ x₁
+... | just x₂ = refl
+... | nothing = refl
+<*,*>-dec {f = f} {f′ = f′} {g = g} {g′ = g′} {x = x} {e = e} | just x₁ | just x₂ with f′ x₁ | g′ x₂
+... | just x₃ | just x₄ = refl
+... | just x₃ | nothing = refl
+... | nothing | just x₃ = refl
+... | nothing | nothing = refl
 
 ↑-morphism : ∀ {A B C} {f : A → Maybe B} {g : B → Maybe C} {n} (μ : Elements n A)
               → ↑ (f >=> g) μ ≣ (↑ f >=> ↑ g) μ
 ↑-morphism {n = zero} μ = refl
-↑-morphism {f = f} {g = g} {n = suc n} (x , e) rewrite ↑-morphism {f = f} {g = g} {n = n} e = sorry
+↑-morphism {f = f} {g = g} {n = suc n} (x , e)
+   rewrite <*,*>-ext {f = f >=> g} {g = (↑ (f >=> g))} {x = x} {e = e} refl λ {x} → (↑-morphism {f = f} {g = g} {n = n} x)
+   rewrite <*,*>-dec {f = f} {f′ = g} {g = ↑ f} {g′ = ↑ g} {x = x} {e = e}
+     with f x | ↑ f e
+... | just x₁ | nothing = refl
+... | nothing | just x₁ = refl
+... | nothing | nothing = refl
+... | just x₁ | just x₂ with g x₁ | ↑ g x₂
+... | just x₃ | just x₄ = refl
+... | just x₃ | nothing = refl
+... | nothing | just x₃ = refl
+... | nothing | nothing = refl
 
 ↑-ext-cong : ∀ {n} {A B : Set} {f g : A → Maybe B} {μ : Elements n A}
            → (∀ x → f x ≣ g x)
