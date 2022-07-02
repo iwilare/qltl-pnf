@@ -21,9 +21,9 @@ open import Relation.Nullary.Negation using (¬∃⟶∀¬; contraposition)
 
 open import Predicates
 open import Counterpart
-open import QLTL-Full
+open import Full
 
-U∃-equivalence : ∀ {n} {ϕ₁ ϕ₂ : QLTL-Full n} → (ϕ₁ U∃ ϕ₂) ≡ ((ϕ₁ W∃ ϕ₂) ∧ ♢∃ ϕ₂)
+U∃-equivalence : ∀ {n} {ϕ₁ ϕ₂ : Full n} → (ϕ₁ U∃ ϕ₂) ≡ ((ϕ₁ W∃ ϕ₂) ∧ ♢∃ ϕ₂)
 U∃-equivalence {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
   where
 
@@ -38,7 +38,7 @@ U∃-equivalence {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
     ⇐ (inj₁ u , _) = u
     ⇐ (inj₂ a , n , _ , ϕ₂n) = n , (λ i _ → a i) , ϕ₂n
 
-W∃-equivalence : ∀ {n} {ϕ₁ ϕ₂ : QLTL-Full n} → (ϕ₁ W∃ ϕ₂) ≡ ((ϕ₁ U∃ ϕ₂) ∨ □∃ ϕ₁)
+W∃-equivalence : ∀ {n} {ϕ₁ ϕ₂ : Full n} → (ϕ₁ W∃ ϕ₂) ≡ ((ϕ₁ U∃ ϕ₂) ∨ □∃ ϕ₁)
 W∃-equivalence {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
   where
     ⇒ : μ , σ ⊨ (ϕ₁ W∃ ϕ₂) → μ , σ ⊨ (ϕ₁ U∃ ϕ₂) ∨ □∃ ϕ₁

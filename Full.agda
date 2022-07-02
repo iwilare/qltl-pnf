@@ -1,6 +1,6 @@
 {-# OPTIONS --guardedness #-}
 
-module QLTL-Full where
+module Full where
 
 open import Axiom.DoubleNegationElimination
 open import Axiom.ExcludedMiddle
@@ -26,37 +26,37 @@ open import Counterpart
 open import Predicates
 open import Negation
 
-data QLTL-Full : ℕ → Set where
-    true  : ∀ {n} → QLTL-Full n
-    false : ∀ {n} → QLTL-Full n
-    !_    : ∀ {n} → QLTL-Full n → QLTL-Full n
-    _∧_   : ∀ {n} → QLTL-Full n → QLTL-Full n → QLTL-Full n
-    _∨_   : ∀ {n} → QLTL-Full n → QLTL-Full n → QLTL-Full n
-    ∃<>_  : ∀ {n} → QLTL-Full (suc n) → QLTL-Full n
-    ∀<>_  : ∀ {n} → QLTL-Full (suc n) → QLTL-Full n
-    ◯∃_   : ∀ {n} → QLTL-Full n → QLTL-Full n
-    ◯∀_   : ∀ {n} → QLTL-Full n → QLTL-Full n
-    _U∃_  : ∀ {n} → QLTL-Full n → QLTL-Full n → QLTL-Full n
-    _W∃_  : ∀ {n} → QLTL-Full n → QLTL-Full n → QLTL-Full n
-    _U∀_  : ∀ {n} → QLTL-Full n → QLTL-Full n → QLTL-Full n
-    _W∀_  : ∀ {n} → QLTL-Full n → QLTL-Full n → QLTL-Full n
+data Full : ℕ → Set where
+    true  : ∀ {n} → Full n
+    false : ∀ {n} → Full n
+    !_    : ∀ {n} → Full n → Full n
+    _∧_   : ∀ {n} → Full n → Full n → Full n
+    _∨_   : ∀ {n} → Full n → Full n → Full n
+    ∃<>_  : ∀ {n} → Full (suc n) → Full n
+    ∀<>_  : ∀ {n} → Full (suc n) → Full n
+    ◯∃_   : ∀ {n} → Full n → Full n
+    ◯∀_   : ∀ {n} → Full n → Full n
+    _U∃_  : ∀ {n} → Full n → Full n → Full n
+    _W∃_  : ∀ {n} → Full n → Full n → Full n
+    _U∀_  : ∀ {n} → Full n → Full n → Full n
+    _W∀_  : ∀ {n} → Full n → Full n → Full n
 
-♢∃ : ∀ {n} → QLTL-Full n → QLTL-Full n
+♢∃ : ∀ {n} → Full n → Full n
 ♢∃ ϕ = true U∃ ϕ
-□∃ : ∀ {n} → QLTL-Full n → QLTL-Full n
+□∃ : ∀ {n} → Full n → Full n
 □∃ ϕ = ϕ W∃ false
-♢∀ : ∀ {n} → QLTL-Full n → QLTL-Full n
+♢∀ : ∀ {n} → Full n → Full n
 ♢∀ ϕ = true U∀ ϕ
-□∀ : ∀ {n} → QLTL-Full n → QLTL-Full n
+□∀ : ∀ {n} → Full n → Full n
 □∀ ϕ = ϕ W∀ false
 
 infix 10 _,_⊨_
 infix 30 !_
 
 interleaved mutual
-  _,_⊨_ : ∀ {A : Set} {n} → Elements n A → CounterpartTrace A → QLTL-Full n → Set
-  at∃ : ∀ {A : Set} {n} → Elements n A → CounterpartTrace A → QLTL-Full n → ℕ → Set
-  at∀ : ∀ {A : Set} {n} → Elements n A → CounterpartTrace A → QLTL-Full n → ℕ → Set
+  _,_⊨_ : ∀ {A : Set} {n} → Elements n A → CounterpartTrace A → Full n → Set
+  at∃ : ∀ {A : Set} {n} → Elements n A → CounterpartTrace A → Full n → ℕ → Set
+  at∀ : ∀ {A : Set} {n} → Elements n A → CounterpartTrace A → Full n → ℕ → Set
 
   at∃ μ σ ϕ i = ∃C∈ ↑ (C≤ i σ) μ ⇒ (_, s i σ ⊨ ϕ)
   at∀ μ σ ϕ i = ∀C∈ ↑ (C≤ i σ) μ ⇒ (_, s i σ ⊨ ϕ)
@@ -75,5 +75,5 @@ interleaved mutual
   μ , σ ⊨ (ϕ₁ U∀ ϕ₂) = at∀ μ σ ϕ₁ until     at∀ μ σ ϕ₂
   μ , σ ⊨ (ϕ₁ W∀ ϕ₂) = at∀ μ σ ϕ₁ weakUntil at∀ μ σ ϕ₂
 
-_≡_ : ∀ {n} → QLTL-Full n → QLTL-Full n → Set₁
+_≡_ : ∀ {n} → Full n → Full n → Set₁
 ϕ₁ ≡ ϕ₂ = ∀ {A} {σ : CounterpartTrace A} {μ} → (μ , σ ⊨ ϕ₁ → μ , σ ⊨ ϕ₂) × (μ , σ ⊨ ϕ₂ → μ , σ ⊨ ϕ₁)

@@ -20,9 +20,9 @@ open import Relation.Nullary
 open import Relation.Nullary.Negation using (¬∃⟶∀¬; contraposition)
 
 open import Counterpart
-open import QLTL-Full
+open import Full
 
-U∃-expansion-law : ∀ {n} {ϕ₁ ϕ₂ : QLTL-Full n} → (ϕ₁ U∃ ϕ₂) ≡ (ϕ₂ ∨ (ϕ₁ ∧ (◯∃ (ϕ₁ U∃ ϕ₂))))
+U∃-expansion-law : ∀ {n} {ϕ₁ ϕ₂ : Full n} → (ϕ₁ U∃ ϕ₂) ≡ (ϕ₂ ∨ (ϕ₁ ∧ (◯∃ (ϕ₁ U∃ ϕ₂))))
 U∃-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
   where
 
@@ -47,7 +47,7 @@ U∃-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
                  ; (suc i) (_≤_.s≤s x) → subst (λ p → ∃C∈ p ⇒ _) (thm {σ = σ} {n = i} {μ = μ} eq) (1<ϕ₁<i i x) })
             , subst (λ p → ∃C∈ p ⇒ _) (thm {σ = σ} {n = n} {μ = μ} eq) n|ϕ₂
 
-W∃-expansion-law : ∀ {n} {ϕ₁ ϕ₂ : QLTL-Full n} → (ϕ₁ W∃ ϕ₂) ≡ (ϕ₂ ∨ (ϕ₁ ∧ (◯∃ (ϕ₁ W∃ ϕ₂))))
+W∃-expansion-law : ∀ {n} {ϕ₁ ϕ₂ : Full n} → (ϕ₁ W∃ ϕ₂) ≡ (ϕ₂ ∨ (ϕ₁ ∧ (◯∃ (ϕ₁ W∃ ϕ₂))))
 W∃-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
   where
     ⇒ : μ , σ ⊨ (ϕ₁ W∃ ϕ₂) → μ , σ ⊨ (ϕ₂ ∨ (ϕ₁ ∧ (◯∃ (ϕ₁ W∃ ϕ₂))))
@@ -73,7 +73,7 @@ W∃-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
               a (suc i) with y i
               ... | p rewrite thm {σ = σ} {n = i} {μ = μ} eq = p
 
-♢∃-expansion-law : ∀ {n} {ϕ : QLTL-Full n} → ♢∃ ϕ ≡ (ϕ ∨ (◯∃ (♢∃ ϕ)))
+♢∃-expansion-law : ∀ {n} {ϕ : Full n} → ♢∃ ϕ ≡ (ϕ ∨ (◯∃ (♢∃ ϕ)))
 ♢∃-expansion-law {_} {ϕ} {_} {σ} {μ} with U∃-expansion-law {_} {true} {ϕ} {_} {σ} {μ}
 ... | U∃⇒ , U∃⇐ = ⇒ , ⇐
   where
@@ -86,7 +86,7 @@ W∃-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
     ⇐ (inj₁ x) = 0 , (λ i ()) , lift-exists {μ = μ} x
     ⇐ (inj₂ y) = U∃⇐ (inj₂ (tt , y))
 
-□∃-expansion-law : ∀ {n} {ϕ : QLTL-Full n} → □∃ ϕ ≡ (ϕ ∧ (◯∃ (□∃ ϕ)))
+□∃-expansion-law : ∀ {n} {ϕ : Full n} → □∃ ϕ ≡ (ϕ ∧ (◯∃ (□∃ ϕ)))
 □∃-expansion-law {_} {ϕ} {_} {σ} {μ} with W∃-expansion-law {_} {ϕ} {false} {_} {σ} {μ}
 ... | W∃⇒ , W∃⇐ = ⇒ , ⇐
   where

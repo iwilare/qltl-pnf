@@ -22,9 +22,13 @@ open import Relation.Nullary.Negation using (¬∃⟶∀¬; contraposition)
 open import Counterpart
 open import Predicates
 open import Negation
-open import QLTL-Full
+open import Full
 
-U∃-negation : ∀ {n} {ϕ₁ ϕ₂ : QLTL-Full n} → ! (ϕ₁ U∃ ϕ₂) ≡ ((! ϕ₂) W∀ (! ϕ₁ ∧ ! ϕ₂))
+◯∃-negation : ∀ {n} {ϕ : Full n} → ! (◯∃ ϕ) ≡ (◯∀ (! ϕ))
+◯∃-negation {σ = σ} {μ = μ} = (λ x → ¬∃C→∀C¬ {x = ↑ (C≤ 1 σ) μ} x)
+                            , (λ x → ¬∃C←∀C¬ {x = ↑ (C≤ 1 σ) μ} x)
+
+U∃-negation : ∀ {n} {ϕ₁ ϕ₂ : Full n} → ! (ϕ₁ U∃ ϕ₂) ≡ ((! ϕ₂) W∀ (! ϕ₁ ∧ ! ϕ₂))
 U∃-negation {σ = σ} {μ = μ} =
   (λ x → congWeakUntil (λ {i} → ¬∃C→∀C¬ {x = ↑ (C≤ i σ) μ})
                        (λ {i} (p1 , p2) → conjunct∀ {x = ↑ (C≤ i σ) μ} (¬∃C→∀C¬ {x = ↑ (C≤ i σ) μ} p1)

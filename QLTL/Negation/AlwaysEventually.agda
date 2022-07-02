@@ -22,13 +22,13 @@ open import Relation.Nullary.Negation using (¬∃⟶∀¬; contraposition)
 open import Counterpart
 open import Predicates
 open import Negation
-open import QLTL-Full
+open import Full
 
 open import PNF.Negation
 open import QLTL.Negation
 open import QLTL.Ext.Negation
 
-□∃-negation : ∀ {n} {ϕ : QLTL-Full n} → ! (□∃ ϕ) ≡ ♢∀ (! ϕ)
+□∃-negation : ∀ {n} {ϕ : Full n} → ! (□∃ ϕ) ≡ ♢∀ (! ϕ)
 □∃-negation {_} {ϕ} {σ = σ} {μ = μ} = ⇒ , ⇐
    where
      ⇒ : μ , σ ⊨ ! (□∃ ϕ) → μ , σ ⊨ ♢∀ (! ϕ)
@@ -41,7 +41,7 @@ open import QLTL.Ext.Negation
        ∘ congUntil ((λ {i} → imply∀ {x = ↑ (C≤ i σ) μ} λ _ z → z))
                    ((λ {i} → imply∀ {x = ↑ (C≤ i σ) μ} λ z → z , (λ x → x)))
 
-♢∃-negation : ∀ {n} {ϕ : QLTL-Full n} → ! (♢∀ ϕ) ≡ □∃ (! ϕ)
+♢∃-negation : ∀ {n} {ϕ : Full n} → ! (♢∀ ϕ) ≡ □∃ (! ϕ)
 ♢∃-negation {_} {ϕ} {σ = σ} {μ = μ} = ⇒ , ⇐
    where
      ⇒ : μ , σ ⊨ ! (♢∀ ϕ) → μ , σ ⊨ □∃ (! ϕ)
