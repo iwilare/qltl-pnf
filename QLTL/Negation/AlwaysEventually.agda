@@ -28,28 +28,28 @@ open import PNF.Negation
 open import QLTL.Negation
 open import QLTL.Ext.Negation
 
-□∃-negation : ∀ {n} {ϕ : Full n} → ! (□∃ ϕ) ≡ ♢∀ (! ϕ)
-□∃-negation {_} {ϕ} {σ = σ} {μ = μ} = ⇒ , ⇐
+□-negation : ∀ {n} {ϕ : Full n} → ! (□ ϕ) ≡ ♢* (! ϕ)
+□-negation {_} {ϕ} {σ = σ} {μ = μ} = ⇒ , ⇐
    where
-     ⇒ : μ , σ ⊨ ! (□∃ ϕ) → μ , σ ⊨ ♢∀ (! ϕ)
+     ⇒ : μ , σ ⊨ ! (□ ϕ) → μ , σ ⊨ ♢* (! ϕ)
      ⇒ = congUntil (λ {i} → imply∀ {x = ↑ (C≤ i σ) μ} λ _ → tt)
                    ((λ {i} → imply∀ {x = ↑ (C≤ i σ) μ} proj₁))
-       ∘ proj₁ (W∃-negation {ϕ₁ = ϕ} {ϕ₂ = false} {σ = σ} {μ = μ})
+       ∘ proj₁ (W-negation {ϕ₁ = ϕ} {ϕ₂ = false} {σ = σ} {μ = μ})
 
-     ⇐ : μ , σ ⊨ ♢∀ (! ϕ) → μ , σ ⊨ ! (□∃ ϕ)
-     ⇐ = proj₂ (W∃-negation {ϕ₁ = ϕ} {ϕ₂ = false} {σ = σ} {μ = μ})
+     ⇐ : μ , σ ⊨ ♢* (! ϕ) → μ , σ ⊨ ! (□ ϕ)
+     ⇐ = proj₂ (W-negation {ϕ₁ = ϕ} {ϕ₂ = false} {σ = σ} {μ = μ})
        ∘ congUntil ((λ {i} → imply∀ {x = ↑ (C≤ i σ) μ} λ _ z → z))
                    ((λ {i} → imply∀ {x = ↑ (C≤ i σ) μ} λ z → z , (λ x → x)))
 
-♢∃-negation : ∀ {n} {ϕ : Full n} → ! (♢∀ ϕ) ≡ □∃ (! ϕ)
-♢∃-negation {_} {ϕ} {σ = σ} {μ = μ} = ⇒ , ⇐
+♢-negation : ∀ {n} {ϕ : Full n} → ! (♢* ϕ) ≡ □ (! ϕ)
+♢-negation {_} {ϕ} {σ = σ} {μ = μ} = ⇒ , ⇐
    where
-     ⇒ : μ , σ ⊨ ! (♢∀ ϕ) → μ , σ ⊨ □∃ (! ϕ)
+     ⇒ : μ , σ ⊨ ! (♢* ϕ) → μ , σ ⊨ □ (! ϕ)
      ⇒ = congWeakUntil (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} λ z → z)
                        ((λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} λ z → proj₁ z tt))
-       ∘ proj₁ (U∀-negation {ϕ₁ = true} {ϕ₂ = ϕ} {σ = σ} {μ = μ})
+       ∘ proj₁ (F-negation {ϕ₁ = true} {ϕ₂ = ϕ} {σ = σ} {μ = μ})
 
-     ⇐ : μ , σ ⊨ □∃ (! ϕ) → μ , σ ⊨ ! (♢∀ ϕ)
-     ⇐ = proj₂ (U∀-negation {ϕ₁ = true} {ϕ₂ = ϕ} {σ = σ} {μ = μ})
+     ⇐ : μ , σ ⊨ □ (! ϕ) → μ , σ ⊨ ! (♢* ϕ)
+     ⇐ = proj₂ (F-negation {ϕ₁ = true} {ϕ₂ = ϕ} {σ = σ} {μ = μ})
        ∘ congWeakUntil ((λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} λ z → z))
                        ((λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} λ z → (λ x → z) , (λ x → z)))

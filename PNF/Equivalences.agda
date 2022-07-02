@@ -23,11 +23,11 @@ open import Predicates
 open import Counterpart
 open import PNF
 
-U∀-equivalence : ∀ {n} {ϕ₁ ϕ₂ : PNF n} → (ϕ₁ U∀ ϕ₂) ≡ ((ϕ₁ W∀ ϕ₂) ∧ ♢∀ ϕ₂)
-U∀-equivalence {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
+F-equivalence : ∀ {n} {ϕ₁ ϕ₂ : PNF n} → (ϕ₁ F ϕ₂) ≡ ((ϕ₁ T ϕ₂) ∧ ♢* ϕ₂)
+F-equivalence {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
   where
 
-    ⇒ : μ , σ ⊨ (ϕ₁ U∀ ϕ₂) → μ , σ ⊨ (ϕ₁ W∀ ϕ₂) ∧ ♢∀ ϕ₂
+    ⇒ : μ , σ ⊨ (ϕ₁ F ϕ₂) → μ , σ ⊨ (ϕ₁ T ϕ₂) ∧ ♢* ϕ₂
     ⇒ (n , ϕ₁<i , ϕ₂n) = inj₁ (n , ϕ₁<i , ϕ₂n) , n , true-before-n , ϕ₂n
       where
         true-before-n : at∀ μ σ true before n
@@ -35,18 +35,18 @@ U∀-equivalence {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
         ... | nothing = tt
         ... | just μ = tt
 
-    ⇐ : μ , σ ⊨ (ϕ₁ W∀ ϕ₂) ∧ ♢∀ ϕ₂ → μ , σ ⊨ ϕ₁ U∀ ϕ₂
+    ⇐ : μ , σ ⊨ (ϕ₁ T ϕ₂) ∧ ♢* ϕ₂ → μ , σ ⊨ ϕ₁ F ϕ₂
     ⇐ (inj₁ u , _) = u
     ⇐ (inj₂ a , n , _ , ϕ₂n) = n , (λ i _ → a i) , ϕ₂n
 
-W∀-equivalence : ∀ {n} {ϕ₁ ϕ₂ : PNF n} → (ϕ₁ W∀ ϕ₂) ≡ ((ϕ₁ U∀ ϕ₂) ∨ □∀ ϕ₁)
-W∀-equivalence {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
+T-equivalence : ∀ {n} {ϕ₁ ϕ₂ : PNF n} → (ϕ₁ T ϕ₂) ≡ ((ϕ₁ F ϕ₂) ∨ □* ϕ₁)
+T-equivalence {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
   where
-    ⇒ : μ , σ ⊨ (ϕ₁ W∀ ϕ₂) → μ , σ ⊨ (ϕ₁ U∀ ϕ₂) ∨ □∀ ϕ₁
+    ⇒ : μ , σ ⊨ (ϕ₁ T ϕ₂) → μ , σ ⊨ (ϕ₁ F ϕ₂) ∨ □* ϕ₁
     ⇒ (inj₁ x) = inj₁ x
     ⇒ (inj₂ y) = inj₂ (inj₂ y)
 
-    ⇐ : μ , σ ⊨ (ϕ₁ U∀ ϕ₂) ∨ □∀ ϕ₁ → μ , σ ⊨ ϕ₁ W∀ ϕ₂
+    ⇐ : μ , σ ⊨ (ϕ₁ F ϕ₂) ∨ □* ϕ₁ → μ , σ ⊨ ϕ₁ T ϕ₂
     ⇐ (inj₁ x) = inj₁ x
     ⇐ (inj₂ (inj₁ (n , ϕ₁<i , ϕ₂n))) with ↑ (C≤ n σ) μ | inspect (↑ (C≤ n σ)) μ
     ... | nothing | ≣: eq = inj₁ (n , ϕ₁<i , ∀ϕ₂)

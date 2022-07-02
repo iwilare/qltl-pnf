@@ -34,21 +34,21 @@ data Full : ℕ → Set where
     _∨_   : ∀ {n} → Full n → Full n → Full n
     ∃<>_  : ∀ {n} → Full (suc n) → Full n
     ∀<>_  : ∀ {n} → Full (suc n) → Full n
-    ◯∃_   : ∀ {n} → Full n → Full n
-    ◯∀_   : ∀ {n} → Full n → Full n
-    _U∃_  : ∀ {n} → Full n → Full n → Full n
-    _W∃_  : ∀ {n} → Full n → Full n → Full n
-    _U∀_  : ∀ {n} → Full n → Full n → Full n
-    _W∀_  : ∀ {n} → Full n → Full n → Full n
+    ◯_   : ∀ {n} → Full n → Full n
+    A_   : ∀ {n} → Full n → Full n
+    _U_  : ∀ {n} → Full n → Full n → Full n
+    _W_  : ∀ {n} → Full n → Full n → Full n
+    _F_  : ∀ {n} → Full n → Full n → Full n
+    _T_  : ∀ {n} → Full n → Full n → Full n
 
-♢∃ : ∀ {n} → Full n → Full n
-♢∃ ϕ = true U∃ ϕ
-□∃ : ∀ {n} → Full n → Full n
-□∃ ϕ = ϕ W∃ false
-♢∀ : ∀ {n} → Full n → Full n
-♢∀ ϕ = true U∀ ϕ
-□∀ : ∀ {n} → Full n → Full n
-□∀ ϕ = ϕ W∀ false
+♢ : ∀ {n} → Full n → Full n
+♢ ϕ = true U ϕ
+□ : ∀ {n} → Full n → Full n
+□ ϕ = ϕ W false
+♢* : ∀ {n} → Full n → Full n
+♢* ϕ = true F ϕ
+□* : ∀ {n} → Full n → Full n
+□* ϕ = ϕ T false
 
 infix 10 _,_⊨_
 infix 30 !_
@@ -68,12 +68,12 @@ interleaved mutual
   μ , σ ⊨ (ϕ₁ ∨ ϕ₂) = μ , σ ⊨ ϕ₁ ⊎ μ , σ ⊨ ϕ₂
   μ , σ ⊨ (∃<> ϕ) = ∃[ x ] (x , μ) , σ ⊨ ϕ
   μ , σ ⊨ (∀<> ϕ) = ∀ x → (x , μ) , σ ⊨ ϕ
-  μ , σ ⊨ (◯∃ ϕ) = at∃ μ σ ϕ 1
-  μ , σ ⊨ (◯∀ ϕ) = at∀ μ σ ϕ 1
-  μ , σ ⊨ (ϕ₁ U∃ ϕ₂) = at∃ μ σ ϕ₁ until     at∃ μ σ ϕ₂
-  μ , σ ⊨ (ϕ₁ W∃ ϕ₂) = at∃ μ σ ϕ₁ weakUntil at∃ μ σ ϕ₂
-  μ , σ ⊨ (ϕ₁ U∀ ϕ₂) = at∀ μ σ ϕ₁ until     at∀ μ σ ϕ₂
-  μ , σ ⊨ (ϕ₁ W∀ ϕ₂) = at∀ μ σ ϕ₁ weakUntil at∀ μ σ ϕ₂
+  μ , σ ⊨ (◯ ϕ) = at∃ μ σ ϕ 1
+  μ , σ ⊨ (A ϕ) = at∀ μ σ ϕ 1
+  μ , σ ⊨ (ϕ₁ U ϕ₂) = at∃ μ σ ϕ₁ until     at∃ μ σ ϕ₂
+  μ , σ ⊨ (ϕ₁ W ϕ₂) = at∃ μ σ ϕ₁ weakUntil at∃ μ σ ϕ₂
+  μ , σ ⊨ (ϕ₁ F ϕ₂) = at∀ μ σ ϕ₁ until     at∀ μ σ ϕ₂
+  μ , σ ⊨ (ϕ₁ T ϕ₂) = at∀ μ σ ϕ₁ weakUntil at∀ μ σ ϕ₂
 
 _≡_ : ∀ {n} → Full n → Full n → Set₁
 ϕ₁ ≡ ϕ₂ = ∀ {A} {σ : CounterpartTrace A} {μ} → (μ , σ ⊨ ϕ₁ → μ , σ ⊨ ϕ₂) × (μ , σ ⊨ ϕ₂ → μ , σ ⊨ ϕ₁)

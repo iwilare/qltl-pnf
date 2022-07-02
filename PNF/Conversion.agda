@@ -40,18 +40,18 @@ interleaved mutual
   ^ true        = true
   ^ (! ϕ)       = ^¬ ϕ
   ^ (∃<> ϕ)     = ∃<> ^ ϕ
-  ^ (◯∃ ϕ)      = ◯∃ ^ ϕ
+  ^ (◯ ϕ)      = ◯ ^ ϕ
   ^ (ϕ₁ ∨ ϕ₂)   = ^ ϕ₁ ∨ ^ ϕ₂
-  ^ (ϕ₁ U∃ ϕ₂)  = ^ ϕ₁ U∃ ^ ϕ₂
-  ^ (ϕ₁ W∃ ϕ₂)  = ^ ϕ₁ W∃ ^ ϕ₂
+  ^ (ϕ₁ U ϕ₂)  = ^ ϕ₁ U ^ ϕ₂
+  ^ (ϕ₁ W ϕ₂)  = ^ ϕ₁ W ^ ϕ₂
 
   ^¬ true       = false
   ^¬ (! ϕ)      = ^ ϕ
   ^¬ (∃<> ϕ)    = ∀<> (^¬ ϕ)
-  ^¬ (◯∃ ϕ)     = ◯∀ (^¬ ϕ)
+  ^¬ (◯ ϕ)     = A (^¬ ϕ)
   ^¬ (ϕ₁ ∨ ϕ₂)  = ^¬ ϕ₁ ∧ ^¬ ϕ₂
-  ^¬ (ϕ₁ U∃ ϕ₂) = (^¬ ϕ₂) W∀ (^¬ ϕ₁ ∧ ^¬ ϕ₂)
-  ^¬ (ϕ₁ W∃ ϕ₂) = (^¬ ϕ₂) U∀ (^¬ ϕ₁ ∧ ^¬ ϕ₂)
+  ^¬ (ϕ₁ U ϕ₂) = (^¬ ϕ₂) T (^¬ ϕ₁ ∧ ^¬ ϕ₂)
+  ^¬ (ϕ₁ W ϕ₂) = (^¬ ϕ₂) F (^¬ ϕ₁ ∧ ^¬ ϕ₂)
 
 interleaved mutual
 
@@ -64,13 +64,13 @@ interleaved mutual
                           , [ inj₁ ∘ proj₂ (^-equivalence ϕ₁) , inj₂ ∘ proj₂ (^-equivalence ϕ₂) ]
   ^-equivalence (∃<> ϕ) = (λ (s , p) → s , proj₁ (^-equivalence ϕ) p)
                         , (λ (s , p) → s , proj₂ (^-equivalence ϕ) p)
-  ^-equivalence (◯∃ ϕ) {σ = σ} {μ = μ} = (λ x → imply∃ {x = ↑ (C≤ 1 σ) μ} (proj₁ (^-equivalence ϕ)) x)
+  ^-equivalence (◯ ϕ) {σ = σ} {μ = μ} = (λ x → imply∃ {x = ↑ (C≤ 1 σ) μ} (proj₁ (^-equivalence ϕ)) x)
                                         , (λ x → imply∃ {x = ↑ (C≤ 1 σ) μ} (proj₂ (^-equivalence ϕ)) x)
-  ^-equivalence (ϕ₁ U∃ ϕ₂) {σ = σ} {μ = μ} = congUntil (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₁ (^-equivalence ϕ₁)))
+  ^-equivalence (ϕ₁ U ϕ₂) {σ = σ} {μ = μ} = congUntil (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₁ (^-equivalence ϕ₁)))
                                                         (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₁ (^-equivalence ϕ₂)))
                                             , congUntil (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₂ (^-equivalence ϕ₁)))
                                                         (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₂ (^-equivalence ϕ₂)))
-  ^-equivalence (ϕ₁ W∃ ϕ₂)  {σ = σ} {μ = μ} = congWeakUntil (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₁ (^-equivalence ϕ₁)))
+  ^-equivalence (ϕ₁ W ϕ₂)  {σ = σ} {μ = μ} = congWeakUntil (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₁ (^-equivalence ϕ₁)))
                                                             (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₁ (^-equivalence ϕ₂)))
                                             , congWeakUntil (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₂ (^-equivalence ϕ₁)))
                                                             (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₂ (^-equivalence ϕ₂)))
@@ -78,7 +78,7 @@ interleaved mutual
   ^¬-negation true = (λ x → x tt) , (λ x x₁ → x)
   ^¬-negation (! ϕ) {σ = σ} {μ = μ} with ^-equivalence ϕ {σ = σ} {μ = μ}
   ... | ⇒ , ⇐ = (λ x → ⇒ (DNE x)) , (λ x → λ z → z (⇐ x))
-  ^¬-negation (ϕ₁ U∃ ϕ₂) {σ = σ} {μ = μ} =
+  ^¬-negation (ϕ₁ U ϕ₂) {σ = σ} {μ = μ} =
         (λ x → congWeakUntil (λ {i} → imply∀ {x = ↑ (C≤ i σ) μ} (proj₁ (^¬-negation ϕ₂)) ∘ (¬∃C→∀C¬ {x = ↑ (C≤ i σ) μ}))
                             (λ {i} (p1 , p2) → conjunct∀ {x = ↑ (C≤ i σ) μ} (imply∀ {x = ↑ (C≤ i σ) μ} (proj₁ (^¬-negation ϕ₁)) (¬∃C→∀C¬ {x = ↑ (C≤ i σ) μ} p1))
                                                                             (imply∀ {x = ↑ (C≤ i σ) μ} (proj₁ (^¬-negation ϕ₂)) (¬∃C→∀C¬ {x = ↑ (C≤ i σ) μ} p2)))
@@ -88,7 +88,7 @@ interleaved mutual
                                                     (¬∃C←∀C¬ {x = ↑ (C≤ i σ) μ} (imply∀ {x = ↑ (C≤ i σ) μ} (proj₂ (^¬-negation ϕ₁)) a))
                                                   , (¬∃C←∀C¬ {x = ↑ (C≤ i σ) μ} (imply∀ {x = ↑ (C≤ i σ) μ} (proj₂ (^¬-negation ϕ₂)) b)))
                                                 x))
-  ^¬-negation (ϕ₁ W∃ ϕ₂) {σ = σ} {μ = μ} =
+  ^¬-negation (ϕ₁ W ϕ₂) {σ = σ} {μ = μ} =
         (λ x → congUntil (λ {i} → imply∀ {x = ↑ (C≤ i σ) μ} (proj₁ (^¬-negation ϕ₂)) ∘ (¬∃C→∀C¬ {x = ↑ (C≤ i σ) μ}))
                             (λ {i} (p1 , p2) → conjunct∀ {x = ↑ (C≤ i σ) μ} (imply∀ {x = ↑ (C≤ i σ) μ} (proj₁ (^¬-negation ϕ₁)) (¬∃C→∀C¬ {x = ↑ (C≤ i σ) μ} p1))
                                                                             (imply∀ {x = ↑ (C≤ i σ) μ} (proj₁ (^¬-negation ϕ₂)) (¬∃C→∀C¬ {x = ↑ (C≤ i σ) μ} p2)))
@@ -104,5 +104,5 @@ interleaved mutual
                             }
   ^¬-negation (∃<> ϕ) = (λ x → λ i → proj₁ (^¬-negation ϕ) ((¬∃⟶∀¬ x) i))
                       , (λ x → λ (a , b) → (proj₂ (^¬-negation ϕ)) (x a) b)
-  ^¬-negation (◯∃ ϕ){σ = σ} {μ = μ} = (imply∀ {x = ↑ (C≤ 1 σ) μ} (proj₁ (^¬-negation ϕ)) ∘ (¬∃C→∀C¬ {x = ↑ (C≤ 1 σ) μ}))
+  ^¬-negation (◯ ϕ){σ = σ} {μ = μ} = (imply∀ {x = ↑ (C≤ 1 σ) μ} (proj₁ (^¬-negation ϕ)) ∘ (¬∃C→∀C¬ {x = ↑ (C≤ 1 σ) μ}))
                                     , ((¬∃C←∀C¬ {x = ↑ (C≤ 1 σ) μ}) ∘ (imply∀ {x = ↑ (C≤ 1 σ) μ} (proj₂ (^¬-negation ϕ))))

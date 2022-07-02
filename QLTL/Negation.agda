@@ -24,12 +24,12 @@ open import Predicates
 open import Negation
 open import Full
 
-◯∃-negation : ∀ {n} {ϕ : Full n} → ! (◯∃ ϕ) ≡ (◯∀ (! ϕ))
-◯∃-negation {σ = σ} {μ = μ} = (λ x → ¬∃C→∀C¬ {x = ↑ (C≤ 1 σ) μ} x)
+◯-negation : ∀ {n} {ϕ : Full n} → ! (◯ ϕ) ≡ (A (! ϕ))
+◯-negation {σ = σ} {μ = μ} = (λ x → ¬∃C→∀C¬ {x = ↑ (C≤ 1 σ) μ} x)
                             , (λ x → ¬∃C←∀C¬ {x = ↑ (C≤ 1 σ) μ} x)
 
-U∃-negation : ∀ {n} {ϕ₁ ϕ₂ : Full n} → ! (ϕ₁ U∃ ϕ₂) ≡ ((! ϕ₂) W∀ (! ϕ₁ ∧ ! ϕ₂))
-U∃-negation {σ = σ} {μ = μ} =
+U-negation : ∀ {n} {ϕ₁ ϕ₂ : Full n} → ! (ϕ₁ U ϕ₂) ≡ ((! ϕ₂) T (! ϕ₁ ∧ ! ϕ₂))
+U-negation {σ = σ} {μ = μ} =
   (λ x → congWeakUntil (λ {i} → ¬∃C→∀C¬ {x = ↑ (C≤ i σ) μ})
                        (λ {i} (p1 , p2) → conjunct∀ {x = ↑ (C≤ i σ) μ} (¬∃C→∀C¬ {x = ↑ (C≤ i σ) μ} p1)
                                                                        (¬∃C→∀C¬ {x = ↑ (C≤ i σ) μ} p2))

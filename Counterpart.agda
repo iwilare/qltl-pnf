@@ -102,11 +102,11 @@ Elements (suc n) A = A × Elements n A
 ... | nothing | just x₃ = refl
 ... | nothing | nothing = refl
 
-↑-morphism : ∀ {A B C} {f : A → Maybe B} {g : B → Maybe C} {n} (μ : Elements n A)
+↑-homomorphism : ∀ {A B C} {f : A → Maybe B} {g : B → Maybe C} {n} (μ : Elements n A)
               → ↑ (f >=> g) μ ≣ (↑ f >=> ↑ g) μ
-↑-morphism {n = zero} μ = refl
-↑-morphism {f = f} {g = g} {n = suc n} (x , e)
-   rewrite <*,*>-ext {f = f >=> g} {g = (↑ (f >=> g))} {x = x} {e = e} refl λ {x} → (↑-morphism {f = f} {g = g} {n = n} x)
+↑-homomorphism {n = zero} μ = refl
+↑-homomorphism {f = f} {g = g} {n = suc n} (x , e)
+   rewrite <*,*>-ext {f = f >=> g} {g = (↑ (f >=> g))} {x = x} {e = e} refl λ {x} → (↑-homomorphism {f = f} {g = g} {n = n} x)
    rewrite <*,*>-dec {f = f} {f′ = g} {g = ↑ f} {g′ = ↑ g} {x = x} {e = e}
      with f x | ↑ f e
 ... | just x₁ | nothing = refl
@@ -128,19 +128,19 @@ lift-unit : ∀ {n} {A : Set} {μ : Elements n A} → ↑ just μ ≣ just μ
 lift-unit {zero} {μ = tt} = refl
 lift-unit {suc n} {μ = a , μ} rewrite lift-unit {n} {μ = μ} = refl
 
-thm : ∀ {k} {A} {σ : CounterpartTrace A} {n} {μ : Elements k _} {μ′}
+switch-tail-suc : ∀ {k} {A} {σ : CounterpartTrace A} {n} {μ : Elements k _} {μ′}
     → ↑ (C≤ 1 σ) μ ≣ just μ′
     → ↑ (C≤ n (tail σ)) μ′
     ≣ ↑ (C≤ (suc n) σ) μ
-thm {_} {_} {σ} {n} {μ} eq rewrite ↑-ext-cong {μ = μ} (monad-law1 {f = rel σ})
-                      | ↑-morphism {f = rel σ} {g = C≤ n (tail σ)} μ
+switch-tail-suc {_} {_} {σ} {n} {μ} eq rewrite ↑-ext-cong {μ = μ} (monad-law1 {f = rel σ})
+                      | ↑-homomorphism {f = rel σ} {g = C≤ n (tail σ)} μ
                       | eq = refl
 
-thm-n : ∀ {k} {A} {σ : CounterpartTrace A} {n} {μ : Elements k _}
+del-counterparts : ∀ {k} {A} {σ : CounterpartTrace A} {n} {μ : Elements k _}
     → ↑ (C≤ 1 σ) μ ≣ nothing
     → ↑ (C≤ (suc n) σ) μ ≣ nothing
-thm-n {_} {_} {σ} {n} {μ} eq rewrite ↑-ext-cong {μ = μ} (monad-law1 {f = rel σ})
-                    | ↑-morphism {f = rel σ} {g = C≤ n (tail σ)} μ
+del-counterparts {_} {_} {σ} {n} {μ} eq rewrite ↑-ext-cong {μ = μ} (monad-law1 {f = rel σ})
+                    | ↑-homomorphism {f = rel σ} {g = C≤ n (tail σ)} μ
                     | eq = refl
 
 ∀C∈_⇒_ : ∀ {A : Set} → Maybe A → (A → Set) → Set

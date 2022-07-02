@@ -51,17 +51,14 @@ postulate
 raise-exists : ∀ {S : Set} → {A B : S → Set} → {x : Maybe S} → (∃C∈ x ⇒ B) → (∀C∈ x ⇒ A) → (∃C∈ x ⇒ A)
 raise-exists {x = just x} _ a = a
 
-imply∃ : ∀ {A : Set} → {P P′ : A → Set} → {x : Maybe A} → (∃C∈ x ⇒ P) → (∀ {x} → P x → P′ x) → ∃C∈ x ⇒ P′
-imply∃ {x = just x} a g = g a
-
-clash∃ : ∀ {S : Set} → {A : S → Set} → {x : Maybe S} → (∃C∈ x ⇒ A) → (∃C∈ x ⇒ (λ x → ¬ A x)) → ⊥
+clash∃ : ∀ {S : Set} → {P : S → Set} → {x : Maybe S} → (∃C∈ x ⇒ P) → (∃C∈ x ⇒ (λ x → ¬ P x)) → ⊥
 clash∃ {x = just x} x₁ x₂ = x₂ x₁
 clash∃ {x = nothing} x x₁ = x₁
 
 decrease-chain : ∀ {P : ℕ → Set} {n n′} → n′ ≤ n → (∀ i → i < n → P i) → (∀ i → i < n′ → P i)
 decrease-chain n′≤n P = λ i i<n′ → P i (<-transˡ i<n′ n′≤n)
 
-thm1 : ∀ {n} {ϕ₁ ϕ₂ : QLTL n} → ! (ϕ₁ U∃ ϕ₂) ≡ ((! ϕ₂) W∀ (! ϕ₁ ∧ ! ϕ₂))
+thm1 : ∀ {n} {ϕ₁ ϕ₂ : QLTL n} → ! (ϕ₁ U ϕ₂) ≡ ((! ϕ₂) T (! ϕ₁ ∧ ! ϕ₂))
 thm1 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
   where
 
@@ -89,7 +86,7 @@ thm1 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
     ¬mp : ∀ ϕ → ¬ max-prefix ϕ → ¬max-prefix ϕ
     ¬mp ϕ a = λ i →
       [ (λ x → inj₁ let i , i<n , x = ¬∀⟶∃¬< x in i , i<n , ¬∃C→∀C¬ {x = ↑ (C≤ i σ) μ} x)
-      , (λ x → inj₂ (imply∃ {x = ↑ (C≤ i σ) μ} (¬∀C→∃C¬ {x = ↑ (C≤ i σ) μ} x) (λ {x} → DNE {P = x , s i σ ⊨ ϕ})))
+      , (λ x → inj₂ (imply∃ {x = ↑ (C≤ i σ) μ} (λ {x} → DNE {P = x , s i σ ⊨ ϕ}) (¬∀C→∃C¬ {x = ↑ (C≤ i σ) μ} x)))
       ]′ (¬×→¬⊎¬ (¬∃⟶∀¬ a i))
 
     max-prefix⊎strong-always : ∀ ϕ → max-prefix ϕ ⊎ strong-always ϕ
@@ -104,11 +101,11 @@ thm1 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
         ... | p with ↑ (C≤ n′ σ) μ
         ... | just x = ⊥-elim (all p)
 
-    then : μ , σ ⊨ ! (ϕ₁ U∃ ϕ₂)
+    then : μ , σ ⊨ ! (ϕ₁ U ϕ₂)
          → ∀ n → before∃ n ϕ₁ → att∀ n (! ϕ₂)
     then a n i<n|∃ϕ₁ = ¬∃C→∀C¬ {x = ↑ (C≤ n σ) μ} (λ x → a (n , i<n|∃ϕ₁ , x))
 
-    ⇒ : μ , σ ⊨ ! (ϕ₁ U∃ ϕ₂) → μ , σ ⊨ ((! ϕ₂) W∀ (! ϕ₁ ∧ ! ϕ₂))
+    ⇒ : μ , σ ⊨ ! (ϕ₁ U ϕ₂) → μ , σ ⊨ ((! ϕ₂) T (! ϕ₁ ∧ ! ϕ₂))
     ⇒ a with max-prefix⊎strong-always ϕ₁
     ... | inj₁ (n , i<n|∃ϕ₁ , n|∀¬ϕ₁) =
              inj₁ (n , (λ i i<n → raise-exists {x = ↑ (C≤ i σ) μ}
@@ -117,7 +114,7 @@ thm1 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
                      , conjunct∀ {x = ↑ (C≤ n σ) μ} n|∀¬ϕ₁ (then a n i<n|∃ϕ₁))
     ... | inj₂ strong-always = inj₂ λ i → then a i λ i′ i′<i → strong-always i′
 
-    ⇐ : μ , σ ⊨ ((! ϕ₂) W∀ (! ϕ₁ ∧ ! ϕ₂)) → μ , σ ⊨ ! (ϕ₁ U∃ ϕ₂)
+    ⇐ : μ , σ ⊨ ((! ϕ₂) T (! ϕ₁ ∧ ! ϕ₂)) → μ , σ ⊨ ! (ϕ₁ U ϕ₂)
     ⇐ (inj₂ ∀i|∀ϕ₁∧¬ϕ₂) (n , i<n|∃ϕ₁ , n|∃ϕ₂) with ↑ (C≤ n σ) μ | ∀i|∀ϕ₁∧¬ϕ₂ n
     ... | just μn | un|¬ϕ₂ = un|¬ϕ₂ n|∃ϕ₂
     ⇐ (inj₁ (m , i<m|∃¬ϕ₂ , m|∀¬ϕ₁∧¬ϕ₂)) (n , i<n|∃ϕ₁ , n|∃ϕ₂) with <-cmp m n
@@ -130,7 +127,7 @@ thm1 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
         | tri≈ _ refl _ with ↑ (C≤ n σ) μ | m|∀¬ϕ₁∧¬ϕ₂
     ...                   | just x | _ , m|¬ϕ₂ = m|¬ϕ₂ n|∃ϕ₂
 
-thm2 : ∀ {n} {ϕ₁ ϕ₂ : QLTL n} → ! (ϕ₁ W∀ ϕ₂) ≡ ((! ϕ₂) U∃ (! ϕ₁ ∧ ! ϕ₂))
+thm2 : ∀ {n} {ϕ₁ ϕ₂ : QLTL n} → ! (ϕ₁ T ϕ₂) ≡ ((! ϕ₂) U (! ϕ₁ ∧ ! ϕ₂))
 thm2 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
   where
 
@@ -158,7 +155,7 @@ thm2 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
     ¬mp : ∀ ϕ → ¬ max-prefix ϕ → ¬max-prefix ϕ
     ¬mp ϕ a = λ i →
       [ (λ x → inj₁ let i , i<n , x = ¬∀⟶∃¬< x in i , i<n , ¬∃C→∀C¬ {x = ↑ (C≤ i σ) μ} x)
-      , (λ x → inj₂ (imply∃ {x = ↑ (C≤ i σ) μ} (¬∀C→∃C¬ {x = ↑ (C≤ i σ) μ} x) (λ {x} → DNE {P = x , s i σ ⊨ ϕ})))
+      , (λ x → inj₂ (imply∃ {x = ↑ (C≤ i σ) μ} (λ {x} → DNE {P = x , s i σ ⊨ ϕ}) (¬∀C→∃C¬ {x = ↑ (C≤ i σ) μ} x)))
       ]′ (¬×→¬⊎¬ (¬∃⟶∀¬ a i))
 
     max-prefix⊎strong-always : ∀ ϕ → max-prefix ϕ ⊎ strong-always ϕ
@@ -173,7 +170,7 @@ thm2 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
         ... | p with ↑ (C≤ n′ σ) μ
         ... | just x = ⊥-elim (all p)
 
-    useful-negation : μ , σ ⊨ ! (ϕ₁ W∀ ϕ₂)
+    useful-negation : μ , σ ⊨ ! (ϕ₁ T ϕ₂)
                   → ∃[ n ] (att∃ n (! ϕ₁)
                          × (∀ i → (∀ k → k < i → att∃ k ϕ₁) → att∃ i (! ϕ₂)))
     useful-negation a =
@@ -184,7 +181,7 @@ thm2 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
                   , ¬∀C→∃C¬ {x = ↑ (C≤ i σ) μ}
                   ] (¬×→¬⊎¬ (¬∃⟶∀¬ a i))
 
-    ⇒ : μ , σ ⊨ ! (ϕ₁ W∀ ϕ₂) → μ , σ ⊨ ((! ϕ₂) U∃ (! ϕ₁ ∧ ! ϕ₂))
+    ⇒ : μ , σ ⊨ ! (ϕ₁ T ϕ₂) → μ , σ ⊨ ((! ϕ₂) U (! ϕ₁ ∧ ! ϕ₂))
     ⇒ a with useful-negation a
     ... | m , m|¬ϕ₁ , then with max-prefix⊎strong-always ϕ₁
     ... | inj₁ (n , i<n|∃ϕ₁ , n|∀¬ϕ₁) with ≤-<-connex n m
@@ -194,7 +191,7 @@ thm2 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
     ⇒ a | m , m|¬ϕ₁ , then | inj₂ strong-always with ↑ (C≤ m σ) μ | strong-always m
     ... | just x | m|ϕ₁ = ⊥-elim (m|¬ϕ₁ m|ϕ₁)
 
-    ⇐ : μ , σ ⊨ ((! ϕ₂) U∃ (! ϕ₁ ∧ ! ϕ₂)) → μ , σ ⊨ ! (ϕ₁ W∀ ϕ₂)
+    ⇐ : μ , σ ⊨ ((! ϕ₂) U (! ϕ₁ ∧ ! ϕ₂)) → μ , σ ⊨ ! (ϕ₁ T ϕ₂)
     ⇐ (n , i<n|∃¬ϕ₂ , n|∃¬ϕ₁∧¬ϕ₂) (inj₂ ∀i|¬ϕ₂) with ↑ (C≤ n σ) μ | ∀i|¬ϕ₂ n
     ⇐ (n , i<n|∃¬ϕ₂ , (n|∃¬ϕ₁ , n|¬ϕ₂)) (inj₂ ∀i|¬ϕ₂) | just x | b = n|∃¬ϕ₁ b
     ⇐ (n , i<n|∃¬ϕ₂ , n|∃¬ϕ₁∧¬ϕ₂) (inj₁ (m , i<m|∃ϕ₁ , m|∀ϕ₂)) with <-cmp m n

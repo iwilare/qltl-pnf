@@ -22,19 +22,19 @@ open import Relation.Nullary.Negation using (¬∃⟶∀¬; contraposition)
 open import Counterpart
 open import PNF
 
-U∀-expansion-law : ∀ {n} {ϕ₁ ϕ₂ : PNF n} → (ϕ₁ U∀ ϕ₂) ≡ (ϕ₂ ∨ (ϕ₁ ∧ (◯∀ (ϕ₁ U∀ ϕ₂))))
-U∀-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
+F-expansion-law : ∀ {n} {ϕ₁ ϕ₂ : PNF n} → (ϕ₁ F ϕ₂) ≡ (ϕ₂ ∨ (ϕ₁ ∧ (A (ϕ₁ F ϕ₂))))
+F-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
   where
-    ⇒ : μ , σ ⊨ (ϕ₁ U∀ ϕ₂) → μ , σ ⊨ (ϕ₂ ∨ (ϕ₁ ∧ (◯∀ (ϕ₁ U∀ ϕ₂))))
+    ⇒ : μ , σ ⊨ (ϕ₁ F ϕ₂) → μ , σ ⊨ (ϕ₂ ∨ (ϕ₁ ∧ (A (ϕ₁ F ϕ₂))))
     ⇒ (zero , ϕ₁<i , ϕ₂n) rewrite lift-unit {μ = μ} = inj₁ ϕ₂n
     ⇒ (suc n , (ϕ₁<i , ϕ₂n)) with ϕ₁<i 0 (_≤_.s≤s _≤_.z≤n)
     ... | base rewrite lift-unit {μ = μ} with ↑ (C≤ 1 σ) μ | inspect (↑ (C≤ 1 σ)) μ
     ... | nothing | ≣: eq = inj₂ (base , tt)
     ... | just μ′ | ≣: eq = inj₂ (base , n ,
-                                         (λ i x → subst (λ p → ∀C∈ p ⇒ _) (sym (thm {σ = σ} {n = i} {μ = μ} eq)) (ϕ₁<i (suc i) (_≤_.s≤s x)))
-                                         , subst (λ p → ∀C∈ p ⇒ _) (sym (thm {σ = σ} {n = n} {μ = μ} eq)) ϕ₂n)
+                                         (λ i x → subst (λ p → ∀C∈ p ⇒ _) (sym (switch-tail-suc {σ = σ} {n = i} {μ = μ} eq)) (ϕ₁<i (suc i) (_≤_.s≤s x)))
+                                         , subst (λ p → ∀C∈ p ⇒ _) (sym (switch-tail-suc {σ = σ} {n = n} {μ = μ} eq)) ϕ₂n)
 
-    ⇐ : μ , σ ⊨ (ϕ₂ ∨ (ϕ₁ ∧ (◯∀ (ϕ₁ U∀ ϕ₂)))) → μ , σ ⊨ (ϕ₁ U∀ ϕ₂)
+    ⇐ : μ , σ ⊨ (ϕ₂ ∨ (ϕ₁ ∧ (A (ϕ₁ F ϕ₂)))) → μ , σ ⊨ (ϕ₁ F ϕ₂)
     ⇐ (inj₁ x) = 0 , (λ i ()) , a
       where a : ∀C∈ ↑ just μ ⇒ (_, σ ⊨ ϕ₂)
             a rewrite lift-unit {μ = μ} = x
@@ -47,14 +47,14 @@ U∀-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
                                             = subst (λ p → ∀C∈ p ⇒ _) (sym eq) (lift-nothing {P = _, tail σ ⊨ ϕ₂})
     ⇐ (inj₂ (μ|ϕ₁ , n , 1<ϕ₁<i , n|ϕ₂)) | just x | ≣: eq =
       suc n , (λ { zero x → lift-forall {μ = μ} μ|ϕ₁
-                 ; (suc i) (_≤_.s≤s x) → subst (λ p → ∀C∈ p ⇒ _) (thm {σ = σ} {n = i} {μ = μ} eq) (1<ϕ₁<i i x) })
-            , subst (λ p → ∀C∈ p ⇒ _) (thm {σ = σ} {n = n} {μ = μ} eq) n|ϕ₂
+                 ; (suc i) (_≤_.s≤s x) → subst (λ p → ∀C∈ p ⇒ _) (switch-tail-suc {σ = σ} {n = i} {μ = μ} eq) (1<ϕ₁<i i x) })
+            , subst (λ p → ∀C∈ p ⇒ _) (switch-tail-suc {σ = σ} {n = n} {μ = μ} eq) n|ϕ₂
 
-W∀-expansion-law : ∀ {n} {ϕ₁ ϕ₂ : PNF n} → (ϕ₁ W∀ ϕ₂) ≡ (ϕ₂ ∨ (ϕ₁ ∧ (◯∀ (ϕ₁ W∀ ϕ₂))))
-W∀-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
+T-expansion-law : ∀ {n} {ϕ₁ ϕ₂ : PNF n} → (ϕ₁ T ϕ₂) ≡ (ϕ₂ ∨ (ϕ₁ ∧ (A (ϕ₁ T ϕ₂))))
+T-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
   where
-    ⇒ : μ , σ ⊨ (ϕ₁ W∀ ϕ₂) → μ , σ ⊨ (ϕ₂ ∨ (ϕ₁ ∧ (◯∀ (ϕ₁ W∀ ϕ₂))))
-    ⇒ (inj₁ x) with U∀-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ}
+    ⇒ : μ , σ ⊨ (ϕ₁ T ϕ₂) → μ , σ ⊨ (ϕ₂ ∨ (ϕ₁ ∧ (A (ϕ₁ T ϕ₂))))
+    ⇒ (inj₁ x) with F-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ}
     ... | ⇒ , ⇐ with ⇒ x
     ... | inj₁ x₁ = inj₁ x₁
     ... | inj₂ (ϕ₁ , u) with ↑ (C≤ 1 σ) μ
@@ -62,44 +62,44 @@ W∀-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
     ... | just x₁ = inj₂ (ϕ₁ , inj₁ u)
     ⇒ (inj₂ y) with ↑ (C≤ 1 σ) μ | inspect (↑ (C≤ 1 σ)) μ
     ... | nothing | ≣: eq = inj₂ (subst (λ p → ∀C∈ p ⇒ _) (lift-unit {μ = μ}) (y 0) , tt)
-    ... | just x | ≣: eq = inj₂ (subst (λ p → ∀C∈ p ⇒ _) (lift-unit {μ = μ}) (y 0) , inj₂ λ i → subst (λ p → ∀C∈ p ⇒ _) (sym (thm {σ = σ} {n = i} {μ = μ} eq)) (y (suc i)))
+    ... | just x | ≣: eq = inj₂ (subst (λ p → ∀C∈ p ⇒ _) (lift-unit {μ = μ}) (y 0) , inj₂ λ i → subst (λ p → ∀C∈ p ⇒ _) (sym (switch-tail-suc {σ = σ} {n = i} {μ = μ} eq)) (y (suc i)))
 
-    ⇐ : μ , σ ⊨ (ϕ₂ ∨ (ϕ₁ ∧ (◯∀ (ϕ₁ W∀ ϕ₂)))) → μ , σ ⊨ (ϕ₁ W∀ ϕ₂)
+    ⇐ : μ , σ ⊨ (ϕ₂ ∨ (ϕ₁ ∧ (A (ϕ₁ T ϕ₂)))) → μ , σ ⊨ (ϕ₁ T ϕ₂)
     ⇐ (inj₁ x) = inj₁ (0 , (λ i ()) , lift-forall {μ = μ} x)
-    ⇐ (inj₂ (ϕ₁μ , u)) with U∀-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ}
+    ⇐ (inj₂ (ϕ₁μ , u)) with F-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ}
     ... | ⇒ , u⇐ with ↑ (C≤ 1 σ) μ | inspect (↑ (C≤ 1 σ)) μ
     ⇐ (inj₂ (ϕ₁μ , inj₁ u)) | ⇒ , u⇐ | just x | ≣: eq = inj₁ (u⇐ (inj₂ (ϕ₁μ , u)))
     ⇐ (inj₂ (ϕ₁μ , inj₂ y)) | ⇒ , u⇐ | just x | ≣: eq = inj₂ a
         where a : ∀ i → ∀C∈ ↑ (C≤ i σ) μ ⇒ _
               a zero = lift-forall {μ = μ} ϕ₁μ
               a (suc i) with y i
-              ... | p rewrite thm {σ = σ} {n = i} {μ = μ} eq = p
+              ... | p rewrite switch-tail-suc {σ = σ} {n = i} {μ = μ} eq = p
     ⇐ (inj₂ (ϕ₁μ , tt)) | ⇒ , u⇐ | nothing | ≣: eq = inj₂ a
         where a : ∀ i → ∀C∈ ↑ (C≤ i σ) μ ⇒ _
               a zero = lift-forall {μ = μ} ϕ₁μ
-              a (suc i) rewrite thm-n {σ = σ} {n = i} {μ = μ} eq = tt
+              a (suc i) rewrite del-counterparts {σ = σ} {n = i} {μ = μ} eq = tt
 
-♢∀-expansion-law : ∀ {n} {ϕ : PNF n} → ♢∀ ϕ ≡ (ϕ ∨ (◯∀ (♢∀ ϕ)))
-♢∀-expansion-law {_} {ϕ} {_} {σ} {μ} with U∀-expansion-law {_} {true} {ϕ} {_} {σ} {μ}
-... | U∀⇒ , U∀⇐ = ⇒ , ⇐
+♢*-expansion-law : ∀ {n} {ϕ : PNF n} → ♢* ϕ ≡ (ϕ ∨ (A (♢* ϕ)))
+♢*-expansion-law {_} {ϕ} {_} {σ} {μ} with F-expansion-law {_} {true} {ϕ} {_} {σ} {μ}
+... | F⇒ , F⇐ = ⇒ , ⇐
   where
-    ⇒ : μ , σ ⊨ ♢∀ ϕ → μ , σ ⊨ (ϕ ∨ (◯∀ (♢∀ ϕ)))
-    ⇒ x with U∀⇒ x
+    ⇒ : μ , σ ⊨ ♢* ϕ → μ , σ ⊨ (ϕ ∨ (A (♢* ϕ)))
+    ⇒ x with F⇒ x
     ... | inj₁ x₁ = inj₁ x₁
     ... | inj₂ (tt , a) = inj₂ a
 
-    ⇐ : μ , σ ⊨ (ϕ ∨ (◯∀ (♢∀ ϕ))) → μ , σ ⊨ ♢∀ ϕ
+    ⇐ : μ , σ ⊨ (ϕ ∨ (A (♢* ϕ))) → μ , σ ⊨ ♢* ϕ
     ⇐ (inj₁ x) = 0 , (λ i ()) , lift-forall {μ = μ} x
-    ⇐ (inj₂ y) = U∀⇐ (inj₂ (tt , y))
+    ⇐ (inj₂ y) = F⇐ (inj₂ (tt , y))
 
-□∀-expansion-law : ∀ {n} {ϕ : PNF n} → □∀ ϕ ≡ (ϕ ∧ (◯∀ (□∀ ϕ)))
-□∀-expansion-law {_} {ϕ} {_} {σ} {μ} with W∀-expansion-law {_} {ϕ} {false} {_} {σ} {μ}
-... | W∀⇒ , W∀⇐ = ⇒ , ⇐
+□*-expansion-law : ∀ {n} {ϕ : PNF n} → □* ϕ ≡ (ϕ ∧ (A (□* ϕ)))
+□*-expansion-law {_} {ϕ} {_} {σ} {μ} with T-expansion-law {_} {ϕ} {false} {_} {σ} {μ}
+... | T⇒ , T⇐ = ⇒ , ⇐
   where
-    ⇒ : μ , σ ⊨ □∀ ϕ → μ , σ ⊨ (ϕ ∧ (◯∀ (□∀ ϕ)))
-    ⇒ x with W∀⇒ x
+    ⇒ : μ , σ ⊨ □* ϕ → μ , σ ⊨ (ϕ ∧ (A (□* ϕ)))
+    ⇒ x with T⇒ x
     ... | inj₁ ()
     ... | inj₂ r = r
 
-    ⇐ : μ , σ ⊨ (ϕ ∧ (◯∀ (□∀ ϕ))) → μ , σ ⊨ □∀ ϕ
-    ⇐ e = W∀⇐ (inj₂ e)
+    ⇐ : μ , σ ⊨ (ϕ ∧ (A (□* ϕ))) → μ , σ ⊨ □* ϕ
+    ⇐ e = T⇐ (inj₂ e)

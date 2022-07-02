@@ -33,21 +33,21 @@ data PNF : ℕ → Set where
     _∨_   : ∀ {n} → PNF n → PNF n → PNF n
     ∃<>_  : ∀ {n} → PNF (suc n) → PNF n
     ∀<>_  : ∀ {n} → PNF (suc n) → PNF n
-    ◯∃_   : ∀ {n} → PNF n → PNF n
-    ◯∀_   : ∀ {n} → PNF n → PNF n
-    _U∃_  : ∀ {n} → PNF n → PNF n → PNF n
-    _W∃_  : ∀ {n} → PNF n → PNF n → PNF n
-    _U∀_  : ∀ {n} → PNF n → PNF n → PNF n
-    _W∀_  : ∀ {n} → PNF n → PNF n → PNF n
+    ◯_   : ∀ {n} → PNF n → PNF n
+    A_   : ∀ {n} → PNF n → PNF n
+    _U_  : ∀ {n} → PNF n → PNF n → PNF n
+    _W_  : ∀ {n} → PNF n → PNF n → PNF n
+    _F_  : ∀ {n} → PNF n → PNF n → PNF n
+    _T_  : ∀ {n} → PNF n → PNF n → PNF n
 
-♢∃ : ∀ {n} → PNF n → PNF n
-♢∃ ϕ = true U∃ ϕ
-□∃ : ∀ {n} → PNF n → PNF n
-□∃ ϕ = ϕ W∃ false
-♢∀ : ∀ {n} → PNF n → PNF n
-♢∀ ϕ = true U∀ ϕ
-□∀ : ∀ {n} → PNF n → PNF n
-□∀ ϕ = ϕ W∀ false
+♢ : ∀ {n} → PNF n → PNF n
+♢ ϕ = true U ϕ
+□ : ∀ {n} → PNF n → PNF n
+□ ϕ = ϕ W false
+♢* : ∀ {n} → PNF n → PNF n
+♢* ϕ = true F ϕ
+□* : ∀ {n} → PNF n → PNF n
+□* ϕ = ϕ T false
 
 infix 10 _,_⊨_
 
@@ -65,12 +65,12 @@ interleaved mutual
   μ , σ ⊨ (ϕ₁ ∨ ϕ₂) = μ , σ ⊨ ϕ₁ ⊎ μ , σ ⊨ ϕ₂
   μ , σ ⊨ (∃<> ϕ) = ∃[ x ] (x , μ) , σ ⊨ ϕ
   μ , σ ⊨ (∀<> ϕ) = ∀ x → (x , μ) , σ ⊨ ϕ
-  μ , σ ⊨ (◯∃ ϕ) = at∃ μ σ ϕ 1
-  μ , σ ⊨ (◯∀ ϕ) = at∀ μ σ ϕ 1
-  μ , σ ⊨ (ϕ₁ U∃ ϕ₂) = at∃ μ σ ϕ₁ until     at∃ μ σ ϕ₂
-  μ , σ ⊨ (ϕ₁ W∃ ϕ₂) = at∃ μ σ ϕ₁ weakUntil at∃ μ σ ϕ₂
-  μ , σ ⊨ (ϕ₁ U∀ ϕ₂) = at∀ μ σ ϕ₁ until     at∀ μ σ ϕ₂
-  μ , σ ⊨ (ϕ₁ W∀ ϕ₂) = at∀ μ σ ϕ₁ weakUntil at∀ μ σ ϕ₂
+  μ , σ ⊨ (◯ ϕ) = at∃ μ σ ϕ 1
+  μ , σ ⊨ (A ϕ) = at∀ μ σ ϕ 1
+  μ , σ ⊨ (ϕ₁ U ϕ₂) = at∃ μ σ ϕ₁ until     at∃ μ σ ϕ₂
+  μ , σ ⊨ (ϕ₁ W ϕ₂) = at∃ μ σ ϕ₁ weakUntil at∃ μ σ ϕ₂
+  μ , σ ⊨ (ϕ₁ F ϕ₂) = at∀ μ σ ϕ₁ until     at∀ μ σ ϕ₂
+  μ , σ ⊨ (ϕ₁ T ϕ₂) = at∀ μ σ ϕ₁ weakUntil at∀ μ σ ϕ₂
 
 _≡_ : ∀ {n} → PNF n → PNF n → Set₁
 ϕ₁ ≡ ϕ₂ = ∀ {A} {σ : CounterpartTrace A} {μ} → (μ , σ ⊨ ϕ₁ → μ , σ ⊨ ϕ₂) × (μ , σ ⊨ ϕ₂ → μ , σ ⊨ ϕ₁)

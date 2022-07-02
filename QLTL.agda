@@ -31,18 +31,18 @@ data QLTL : ℕ → Set where
     !_    : ∀ {n} → QLTL n → QLTL n
     _∨_   : ∀ {n} → QLTL n → QLTL n → QLTL n
     ∃<>_  : ∀ {n} → QLTL (suc n) → QLTL n
-    ◯∃_   : ∀ {n} → QLTL n → QLTL n
-    _U∃_  : ∀ {n} → QLTL n → QLTL n → QLTL n
-    _W∃_  : ∀ {n} → QLTL n → QLTL n → QLTL n
+    ◯_   : ∀ {n} → QLTL n → QLTL n
+    _U_  : ∀ {n} → QLTL n → QLTL n → QLTL n
+    _W_  : ∀ {n} → QLTL n → QLTL n → QLTL n
 
 false : ∀ {n} → QLTL n
 false = ! true
 
-♢∃ : ∀ {n} → QLTL n → QLTL n
-♢∃ ϕ = true U∃ ϕ
+♢ : ∀ {n} → QLTL n → QLTL n
+♢ ϕ = true U ϕ
 
-□∃ : ∀ {n} → QLTL n → QLTL n
-□∃ ϕ = ϕ W∃ (! true)
+□ : ∀ {n} → QLTL n → QLTL n
+□ ϕ = ϕ W (! true)
 
 _∧_ : ∀ {n} → QLTL n → QLTL n → QLTL n
 ϕ₁ ∧ ϕ₂ = ! ((! ϕ₁) ∨ (! ϕ₂))
@@ -60,9 +60,9 @@ interleaved mutual
   μ , σ ⊨ ! ϕ = μ , σ ⊨ ϕ → ⊥
   μ , σ ⊨ (ϕ₁ ∨ ϕ₂) = μ , σ ⊨ ϕ₁ ⊎ μ , σ ⊨ ϕ₂
   μ , σ ⊨ (∃<> ϕ) = ∃[ x ] (x , μ) , σ ⊨ ϕ
-  μ , σ ⊨ (◯∃ ϕ) = at∃ μ σ ϕ 1
-  μ , σ ⊨ (ϕ₁ U∃ ϕ₂) = at∃ μ σ ϕ₁ until     at∃ μ σ ϕ₂
-  μ , σ ⊨ (ϕ₁ W∃ ϕ₂) = at∃ μ σ ϕ₁ weakUntil at∃ μ σ ϕ₂
+  μ , σ ⊨ (◯ ϕ) = at∃ μ σ ϕ 1
+  μ , σ ⊨ (ϕ₁ U ϕ₂) = at∃ μ σ ϕ₁ until     at∃ μ σ ϕ₂
+  μ , σ ⊨ (ϕ₁ W ϕ₂) = at∃ μ σ ϕ₁ weakUntil at∃ μ σ ϕ₂
 
 _≡_ : ∀ {n} → QLTL n → QLTL n → Set₁
 ϕ₁ ≡ ϕ₂ = ∀ {A} {σ : CounterpartTrace A} {μ} → (μ , σ ⊨ ϕ₁ → μ , σ ⊨ ϕ₂) × (μ , σ ⊨ ϕ₂ → μ , σ ⊨ ϕ₁)
