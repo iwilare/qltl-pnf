@@ -43,9 +43,11 @@ postulate
 ... | yes p = (λ x → neg (inj₁ x)) , (λ x → neg (inj₁ p))
 ... | no ¬p = ¬p , (λ x → neg (inj₂ x))
 
-postulate
-  ¬∀⟶∃¬ : ∀ {P : ℕ → Set ℓ} → ¬ (∀ x → P x) → (∃[ n ] ¬ P n)
-  ¬∀⟶∃¬< : ∀ {n} {P : ℕ → Set ℓ} → ¬ (∀ z → z < n → P z) → (∃[ z ] (z < n × ¬ P z))
+¬∀¬⟶∃ : ∀ {A : Set ℓ} {P : A → Set ℓ} → ¬ (∀ x → ¬ P x) → (∃[ n ] P n)
+¬∀¬⟶∃ x = DNE λ z → x (λ x z₁ → z (x , z₁))
+
+¬∀⟶∃¬ : ∀ {A : Set ℓ} {P : A → Set ℓ} → ¬ (∀ x → P x) → (∃[ n ] ¬ P n)
+¬∀⟶∃¬ {P = P} x = ¬∀¬⟶∃ {P = λ x → ¬ P x} λ x₁ → x λ x₂ → DNE (x₁ x₂)
 
 _¬until_ : ∀ (A B : ℕ → Set) → Set
 A ¬until B = ∀ n → ((∃[ i ] i < n × A i) ⊎ B n)
@@ -60,7 +62,7 @@ _¬weakUntilLeft_ : ∀ (A B : ℕ → Set) → Set
 A ¬weakUntilLeft B = A ¬untilLeft B × eventually A
 
 u¬u : ∀ {A B} → ¬ A until B → (¬′ A) ¬until (¬′ B)
-u¬u nu = λ i → [ (λ x → inj₁ (¬∀⟶∃¬< x)) , (λ x → inj₂ x) ] (¬×→¬⊎¬ ((¬∃⟶∀¬ nu) i))
+u¬u nu = λ i → [ (λ x → inj₁ let a , b = ¬∀⟶∃¬ x in a , let b , c = ¬∀⟶∃¬ x in ¬∀⟶∃¬ c) , (λ x → inj₂ x) ] (¬×→¬⊎¬ ((¬∃⟶∀¬ nu) i))
 
 u¬ul : ∀ {A B} → ¬ A until B → A ¬untilLeft (¬′ B)
 u¬ul nu = λ i → [ (λ x → λ z _ → x z) , (λ x → λ _ → x) ] (¬×→¬⊎¬ ((¬∃⟶∀¬ nu) i))
