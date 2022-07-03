@@ -2,6 +2,20 @@
 
 This repository contains the Agda definitions and proofs presented in the paper "Positive normal forms for counterpart-based temporal logics" (Gadducci, Laretto, Trotta 2022).
 
+For simplicity, only the extended versions of QLTL and its positive normal form are formalized here, since the constructions for the standard case trivially follow. However, the proofs still closely mirror our work and the new operators are introduced with the same pace of the paper.
+
+## Remarks
+
+Formulas use a representation based on de Bruijn indices to ensure well-scopedness[^1]. Each formula is typed with a number `n : ℕ`, indicating the size of the underlying context in which the formula is defined. This is such that `n` is greater than the cardinality of the set of free variables of the formula, and is thus sufficient to ensure that the formula is well-scoped by construction. For example, in PNF the formula `∃x. x = y` is represented as:
+```agda
+-- The formula has type `QLTL 1` since y appears free, the context has at least 1 variable
+example : QLTL 1
+example = ∃<> zero == suc zero
+       -- ∃x. x == y
+```
+
+[^1]: https://plfa.github.io/DeBruijn/
+
 ### Files description
 
 - `QLTL.agda`: syntax and semantics of extended QLTL.
@@ -21,7 +35,3 @@ This repository contains the Agda definitions and proofs presented in the paper 
 
 - `Alternative/`: positive normal form results for the alternative definition of the `then` operator.
 - `All/`: collection of all results for ease of retrieval.
-
-## Remarks
-
-Formulas are represented using de Bruijn indices to ensure well-scopedness. Each formula is typed with a number `n : ℕ` indicating the size of the context.

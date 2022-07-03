@@ -20,11 +20,11 @@ open import Negation
 
 -- Syntax of extended QLTL
 data QLTL : ℕ → Set where
-    true  : ∀ {n} → QLTL n
-    _==_  : ∀ {n} → Fin n → Fin n → QLTL n
-    !_    : ∀ {n} → QLTL n → QLTL n
-    _∨_   : ∀ {n} → QLTL n → QLTL n → QLTL n
-    ∃<>_  : ∀ {n} → QLTL (suc n) → QLTL n
+    true : ∀ {n} → QLTL n
+    _==_ : ∀ {n} → Fin  n → Fin  n → QLTL n
+    !_   : ∀ {n} → QLTL n → QLTL n
+    _∨_  : ∀ {n} → QLTL n → QLTL n → QLTL n
+    ∃<>_ : ∀ {n} → QLTL (suc n) → QLTL n
     ◯_   : ∀ {n} → QLTL n → QLTL n
     _U_  : ∀ {n} → QLTL n → QLTL n → QLTL n
     _W_  : ∀ {n} → QLTL n → QLTL n → QLTL n
@@ -72,3 +72,9 @@ interleaved mutual
 -- Extended QLTL equivalence
 _≣_ : ∀ {n} → QLTL n → QLTL n → Set₁
 ϕ₁ ≣ ϕ₂ = ∀ {A} {σ : CounterpartTrace A} {μ} → (σ , μ ⊨ ϕ₁ → σ , μ ⊨ ϕ₂) × (σ , μ ⊨ ϕ₂ → σ , μ ⊨ ϕ₁)
+
+-- Example of a simple formula to illustrate de Bruijn-based scoping.
+-- The formula has type `QLTL 1` since y appears free, thus the context has at least 1 variable
+example : QLTL 1
+example = ∃<> zero == suc zero
+       -- ∃x. x == y
