@@ -1,5 +1,11 @@
 {-# OPTIONS --guardedness #-}
 
+{-
+  Negation for the then and until-forall operators using
+  the alternative existential definitions.
+  We show here how the usual normal forms can still be retrieved,
+  and, transitively, this equates the two operators.
+-}
 module Alternative.Negation where
 
 open import Axiom.DoubleNegationElimination
@@ -58,35 +64,35 @@ clash∃ {x = nothing} x x₁ = x₁
 decrease-chain : ∀ {P : ℕ → Set} {n n′} → n′ ≤ n → (∀ i → i < n → P i) → (∀ i → i < n′ → P i)
 decrease-chain n′≤n P = λ i i<n′ → P i (<-transˡ i<n′ n′≤n)
 
-thm1 : ∀ {n} {ϕ₁ ϕ₂ : QLTL n} → ! (ϕ₁ U ϕ₂) ≡ ((! ϕ₂) T (! ϕ₁ ∧ ! ϕ₂))
+thm1 : ∀ {n} {ϕ₁ ϕ₂ : QLTL-alt n} → ! (ϕ₁ U ϕ₂) ≣ ((! ϕ₂) T (! ϕ₁ ∧ ! ϕ₂))
 thm1 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
   where
 
-    att∀ : ℕ → QLTL n → Set
-    att∀ i ϕ = ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
+    at∀′ : ℕ → QLTL-alt n → Set
+    at∀′ i ϕ = ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
 
-    att∃ : ℕ → QLTL n → Set
-    att∃ i ϕ = ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
+    at∃′ : ℕ → QLTL-alt n → Set
+    at∃′ i ϕ = ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
 
-    before∃ : ℕ → QLTL n → Set
-    before∃ n ϕ = ∀ i → i < n → att∃ i ϕ
+    before∃ : ℕ → QLTL-alt n → Set
+    before∃ n ϕ = ∀ i → i < n → at∃′ i ϕ
 
-    ¬before∃ : ℕ → QLTL n → Set
-    ¬before∃ n ϕ = ∃[ i ] (i < n × att∀ i (! ϕ))
+    ¬before∃ : ℕ → QLTL-alt n → Set
+    ¬before∃ n ϕ = ∃[ i ] (i < n × at∀′ i (! ϕ))
 
-    max-prefix : QLTL n → Set
-    max-prefix ϕ = ∃[ n ] (before∃ n ϕ × att∀ n (! ϕ))
+    max-prefix : QLTL-alt n → Set
+    max-prefix ϕ = ∃[ n ] (before∃ n ϕ × at∀′ n (! ϕ))
 
-    ¬max-prefix : QLTL n → Set
-    ¬max-prefix ϕ = ∀ n → (¬before∃ n ϕ ⊎ att∃ n ϕ)
+    ¬max-prefix : QLTL-alt n → Set
+    ¬max-prefix ϕ = ∀ n → (¬before∃ n ϕ ⊎ at∃′ n ϕ)
 
-    strong-always : QLTL n → Set
-    strong-always ϕ = ∀ i → att∃ i ϕ
+    strong-always : QLTL-alt n → Set
+    strong-always ϕ = ∀ i → at∃′ i ϕ
 
     ¬mp : ∀ ϕ → ¬ max-prefix ϕ → ¬max-prefix ϕ
     ¬mp ϕ a = λ i →
       [ (λ x → inj₁ let i , i<n , x = ¬∀⟶∃¬< x in i , i<n , ¬∃C→∀C¬ {x = ↑ (C≤ i σ) μ} x)
-      , (λ x → inj₂ (imply∃ {x = ↑ (C≤ i σ) μ} (λ {x} → DNE {P = x , s i σ ⊨ ϕ}) (¬∀C→∃C¬ {x = ↑ (C≤ i σ) μ} x)))
+      , (λ x → inj₂ (imply∃ {x = ↑ (C≤ i σ) μ} (λ {x} → DNE {P = s i σ , x ⊨ ϕ}) (¬∀C→∃C¬ {x = ↑ (C≤ i σ) μ} x)))
       ]′ (¬×→¬⊎¬ (¬∃⟶∀¬ a i))
 
     max-prefix⊎strong-always : ∀ ϕ → max-prefix ϕ ⊎ strong-always ϕ
@@ -94,7 +100,7 @@ thm1 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
     ... | yes y = inj₁ y
     ... | no n = inj₂ (λ i → wow i (<′-wellFounded i))
       where
-        wow : ∀ i → Acc _<′_ i → att∃ i ϕ
+        wow : ∀ i → Acc _<′_ i → at∃′ i ϕ
         wow i (acc rs) with ¬mp ϕ n i
         ... | inj₂ y = y
         ... | inj₁ (n′ , n′<i , all) with wow n′ (rs n′ (≤⇒≤′ n′<i))
@@ -102,7 +108,7 @@ thm1 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
         ... | just x = ⊥-elim (all p)
 
     then : σ , μ ⊨ ! (ϕ₁ U ϕ₂)
-         → ∀ n → before∃ n ϕ₁ → att∀ n (! ϕ₂)
+         → ∀ n → before∃ n ϕ₁ → at∀′ n (! ϕ₂)
     then a n i<n|∃ϕ₁ = ¬∃C→∀C¬ {x = ↑ (C≤ n σ) μ} (λ x → a (n , i<n|∃ϕ₁ , x))
 
     ⇒ : σ , μ ⊨ ! (ϕ₁ U ϕ₂) → σ , μ ⊨ ((! ϕ₂) T (! ϕ₁ ∧ ! ϕ₂))
@@ -127,35 +133,35 @@ thm1 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
         | tri≈ _ refl _ with ↑ (C≤ n σ) μ | m|∀¬ϕ₁∧¬ϕ₂
     ...                   | just x | _ , m|¬ϕ₂ = m|¬ϕ₂ n|∃ϕ₂
 
-thm2 : ∀ {n} {ϕ₁ ϕ₂ : QLTL n} → ! (ϕ₁ T ϕ₂) ≡ ((! ϕ₂) U (! ϕ₁ ∧ ! ϕ₂))
+thm2 : ∀ {n} {ϕ₁ ϕ₂ : QLTL-alt n} → ! (ϕ₁ T ϕ₂) ≣ ((! ϕ₂) U (! ϕ₁ ∧ ! ϕ₂))
 thm2 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
   where
 
-    att∀ : ℕ → QLTL n → Set
-    att∀ i ϕ = ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
+    at∀′ : ℕ → QLTL-alt n → Set
+    at∀′ i ϕ = ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
 
-    att∃ : ℕ → QLTL n → Set
-    att∃ i ϕ = ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
+    at∃′ : ℕ → QLTL-alt n → Set
+    at∃′ i ϕ = ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
 
-    before∃ : ℕ → QLTL n → Set
-    before∃ n ϕ = ∀ i → i < n → att∃ i ϕ
+    before∃ : ℕ → QLTL-alt n → Set
+    before∃ n ϕ = ∀ i → i < n → at∃′ i ϕ
 
-    ¬before∃ : ℕ → QLTL n → Set
-    ¬before∃ n ϕ = ∃[ i ] (i < n × att∀ i (! ϕ))
+    ¬before∃ : ℕ → QLTL-alt n → Set
+    ¬before∃ n ϕ = ∃[ i ] (i < n × at∀′ i (! ϕ))
 
-    max-prefix : QLTL n → Set
-    max-prefix ϕ = ∃[ n ] (before∃ n ϕ × att∀ n (! ϕ))
+    max-prefix : QLTL-alt n → Set
+    max-prefix ϕ = ∃[ n ] (before∃ n ϕ × at∀′ n (! ϕ))
 
-    ¬max-prefix : QLTL n → Set
-    ¬max-prefix ϕ = ∀ n → (¬before∃ n ϕ ⊎ att∃ n ϕ)
+    ¬max-prefix : QLTL-alt n → Set
+    ¬max-prefix ϕ = ∀ n → (¬before∃ n ϕ ⊎ at∃′ n ϕ)
 
-    strong-always : QLTL n → Set
-    strong-always ϕ = ∀ i → att∃ i ϕ
+    strong-always : QLTL-alt n → Set
+    strong-always ϕ = ∀ i → at∃′ i ϕ
 
     ¬mp : ∀ ϕ → ¬ max-prefix ϕ → ¬max-prefix ϕ
     ¬mp ϕ a = λ i →
       [ (λ x → inj₁ let i , i<n , x = ¬∀⟶∃¬< x in i , i<n , ¬∃C→∀C¬ {x = ↑ (C≤ i σ) μ} x)
-      , (λ x → inj₂ (imply∃ {x = ↑ (C≤ i σ) μ} (λ {x} → DNE {P = x , s i σ ⊨ ϕ}) (¬∀C→∃C¬ {x = ↑ (C≤ i σ) μ} x)))
+      , (λ x → inj₂ (imply∃ {x = ↑ (C≤ i σ) μ} (λ {x} → DNE {P = s i σ , x ⊨ ϕ}) (¬∀C→∃C¬ {x = ↑ (C≤ i σ) μ} x)))
       ]′ (¬×→¬⊎¬ (¬∃⟶∀¬ a i))
 
     max-prefix⊎strong-always : ∀ ϕ → max-prefix ϕ ⊎ strong-always ϕ
@@ -163,7 +169,7 @@ thm2 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
     ... | yes y = inj₁ y
     ... | no n = inj₂ (λ i → wow i (<′-wellFounded i))
       where
-        wow : ∀ i → Acc _<′_ i → att∃ i ϕ
+        wow : ∀ i → Acc _<′_ i → at∃′ i ϕ
         wow i (acc rs) with ¬mp ϕ n i
         ... | inj₂ y = y
         ... | inj₁ (n′ , n′<i , all) with wow n′ (rs n′ (≤⇒≤′ n′<i))
@@ -171,8 +177,8 @@ thm2 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
         ... | just x = ⊥-elim (all p)
 
     useful-negation : σ , μ ⊨ ! (ϕ₁ T ϕ₂)
-                  → ∃[ n ] (att∃ n (! ϕ₁)
-                         × (∀ i → (∀ k → k < i → att∃ k ϕ₁) → att∃ i (! ϕ₂)))
+                  → ∃[ n ] (at∃′ n (! ϕ₁)
+                         × (∀ i → (∀ k → k < i → at∃′ k ϕ₁) → at∃′ i (! ϕ₂)))
     useful-negation a =
       let a , b = ¬⊎→¬×¬ a in
       let n , b = ¬∀⟶∃¬ b in

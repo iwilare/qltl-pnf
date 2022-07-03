@@ -24,7 +24,6 @@ open import Relation.Binary.Definitions
 open import Relation.Binary.PropositionalEquality using (refl)
 open import Relation.Nullary
 open import Relation.Nullary.Negation using (¬∃⟶∀¬; contraposition)
-
 open import Relation.Unary renaming (∁ to ¬′; _∩_ to _∧′_)
 
 open import Predicates

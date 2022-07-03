@@ -1,73 +1,92 @@
 {-# OPTIONS --guardedness #-}
 
+{-
+  Syntax and semantics for QLTL with negation and all derived operators, using
+  the alternative definitions for the then and until-forall operators.
+-}
 module Alternative.QLTL where
 
 open import Data.Empty
-open import Data.Fin using (Fin)
 open import Data.Maybe
-open import Data.Nat
-open import Data.Nat.Induction
-open import Data.Nat.Properties using (≤⇒≤′; <-transˡ; <-trans; <⇒≤; <-cmp; ≤-<-connex)
+open import Data.Nat using (ℕ; suc; _<_)
 open import Data.Product
 open import Data.Sum
-open import Data.Unit hiding (_≤_)
-open import Function using (id)
-open import Level using (0ℓ; Level)
-open import Relation.Binary.Definitions
-open import Relation.Binary.PropositionalEquality using (refl) renaming (_≡_ to _≣_)
+open import Data.Unit
 open import Relation.Nullary
-open import Relation.Nullary.Negation using (¬∃⟶∀¬; contraposition)
+open import Data.Fin using (Fin)
+open import Relation.Binary.PropositionalEquality using (_≡_; _≢_)
 
 open import Counterpart
+open import Predicates
+open import Negation
 
-data QLTL : ℕ → Set where
-    true  : ∀ {n} → QLTL n
-    false : ∀ {n} → QLTL n
-    !_    : ∀ {n} → QLTL n → QLTL n
-    _∧_   : ∀ {n} → QLTL n → QLTL n → QLTL n
-    _∨_   : ∀ {n} → QLTL n → QLTL n → QLTL n
-    ∃<>_  : ∀ {n} → QLTL (suc n) → QLTL n
-    ∀<>_  : ∀ {n} → QLTL (suc n) → QLTL n
-    A_   : ∀ {n} → QLTL n → QLTL n
-    ◯_   : ∀ {n} → QLTL n → QLTL n
-    _F_  : ∀ {n} → QLTL n → QLTL n → QLTL n
-    _U_  : ∀ {n} → QLTL n → QLTL n → QLTL n
-    _T_  : ∀ {n} → QLTL n → QLTL n → QLTL n
-    _W_  : ∀ {n} → QLTL n → QLTL n → QLTL n
+-- Syntax of full QLTL
+data QLTL-alt : ℕ → Set where
+    true  : ∀ {n} → QLTL-alt n
+    false : ∀ {n} → QLTL-alt n
+    !_    : ∀ {n} → QLTL-alt n → QLTL-alt n
+    _∧_   : ∀ {n} → QLTL-alt n → QLTL-alt n → QLTL-alt n
+    _∨_   : ∀ {n} → QLTL-alt n → QLTL-alt n → QLTL-alt n
+    _==_  : ∀ {n} → Fin n  → Fin n  → QLTL-alt n
+    _!=_  : ∀ {n} → Fin n  → Fin n  → QLTL-alt n
+    ∃<>_  : ∀ {n} → QLTL-alt (suc n) → QLTL-alt n
+    ∀<>_  : ∀ {n} → QLTL-alt (suc n) → QLTL-alt n
+    ◯_   : ∀ {n} → QLTL-alt n → QLTL-alt n
+    A_   : ∀ {n} → QLTL-alt n → QLTL-alt n
+    _U_  : ∀ {n} → QLTL-alt n → QLTL-alt n → QLTL-alt n
+    _W_  : ∀ {n} → QLTL-alt n → QLTL-alt n → QLTL-alt n
+    _F_  : ∀ {n} → QLTL-alt n → QLTL-alt n → QLTL-alt n
+    _T_  : ∀ {n} → QLTL-alt n → QLTL-alt n → QLTL-alt n
 
-♢* : ∀ {n} → QLTL n → QLTL n
-♢* ϕ = true F ϕ
-♢ : ∀ {n} → QLTL n → QLTL n
+infix 25 _∧_ _∨_
+infix 30 _U_ _W_ _F_ _T_
+infix 35 ∃<>_ ∀<>_
+infix 40 ◯_ A_ ♢_ □_ ♢*_ □*_
+infix 45 !_
+infix 50 _==_ _!=_
+
+-- Syntactically defined shorthands
+♢_ : ∀ {n} → QLTL-alt n → QLTL-alt n
 ♢ ϕ = true U ϕ
-□* : ∀ {n} → QLTL n → QLTL n
-□* ϕ = ϕ T false
-□ : ∀ {n} → QLTL n → QLTL n
+
+□_ : ∀ {n} → QLTL-alt n → QLTL-alt n
 □ ϕ = ϕ W false
 
-infix 30 !_
+♢*_ : ∀ {n} → QLTL-alt n → QLTL-alt n
+♢* ϕ = true F ϕ
+
+□*_ : ∀ {n} → QLTL-alt n → QLTL-alt n
+□* ϕ = ϕ T false
+
+-- Counterpart semantics of extended QLTL with all derived operators
 infix 10 _,_⊨_
 
 interleaved mutual
-  _,_⊨_ : ∀ {A : Set} {n} → CounterpartTrace A → Assignment n A → QLTL n → Set
-  at∀ : ∀ {A : Set} {n} → CounterpartTrace A → Assignment n A → QLTL n → ℕ → Set
-  at∃ : ∀ {A : Set} {n} → CounterpartTrace A → Assignment n A → QLTL n → ℕ → Set
+  _,_⊨_ : ∀ {A : Set} {n} → CounterpartTrace A → Assignment n A → QLTL-alt n → Set
+  at∃ : ∀ {A : Set} {n} → CounterpartTrace A → Assignment n A → QLTL-alt n → ℕ → Set
+  at∀ : ∀ {A : Set} {n} → CounterpartTrace A → Assignment n A → QLTL-alt n → ℕ → Set
 
-  at∀ σ μ ϕ i = ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
+  -- Shorthand expressing: "A counterpart for μ in σ after i steps is defined and satisfies ϕ"
   at∃ σ μ ϕ i = ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
+  -- Shorthand expressing: "If a counterpart for μ in σ after i steps is defined then it satisfies ϕ"
+  at∀ σ μ ϕ i = ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
 
   σ , μ ⊨ true = ⊤
   σ , μ ⊨ false = ⊥
   σ , μ ⊨ ! ϕ = ¬ σ , μ ⊨ ϕ
+  σ , μ ⊨ x == y = μ [ x ] ≡ μ [ y ]
+  σ , μ ⊨ x != y = μ [ x ] ≢ μ [ y ]
   σ , μ ⊨ (ϕ₁ ∧ ϕ₂) = σ , μ ⊨ ϕ₁ × σ , μ ⊨ ϕ₂
   σ , μ ⊨ (ϕ₁ ∨ ϕ₂) = σ , μ ⊨ ϕ₁ ⊎ σ , μ ⊨ ϕ₂
   σ , μ ⊨ (∃<> ϕ) = ∃[ x ] σ , (x , μ) ⊨ ϕ
   σ , μ ⊨ (∀<> ϕ) = ∀ x → σ , (x , μ) ⊨ ϕ
-  σ , μ ⊨ (A ϕ) = at∀ σ μ ϕ 1
   σ , μ ⊨ (◯ ϕ) = at∃ σ μ ϕ 1
-  σ , μ ⊨ (ϕ₁ U ϕ₂) = ∃[ n ] ((∀ i → i < n → at∃ σ μ ϕ₁ i) × at∃ σ μ ϕ₂ n)
-  σ , μ ⊨ (ϕ₁ F ϕ₂) = ∃[ n ] ((∀ i → i < n → at∃ σ μ ϕ₁ i) × at∀ σ μ ϕ₂ n)
-  σ , μ ⊨ (ϕ₁ T ϕ₂) =(∃[ n ] ((∀ i → i < n → at∃ σ μ ϕ₁ i) × at∀ σ μ ϕ₂ n)) ⊎ (∀ i → at∀ σ μ ϕ₁ i)
-  σ , μ ⊨ (ϕ₁ W ϕ₂) =(∃[ n ] ((∀ i → i < n → at∃ σ μ ϕ₁ i) × at∃ σ μ ϕ₂ n)) ⊎ (∀ i → at∃ σ μ ϕ₁ i)
+  σ , μ ⊨ (A ϕ) = at∀ σ μ ϕ 1
+  σ , μ ⊨ (ϕ₁ U ϕ₂) = at∃ σ μ ϕ₁ until     at∃ σ μ ϕ₂
+  σ , μ ⊨ (ϕ₁ W ϕ₂) = at∃ σ μ ϕ₁ weakUntil at∃ σ μ ϕ₂
+  -- Alternative definitions, using existential quantification in the intermediate part.
+  σ , μ ⊨ (ϕ₁ F ϕ₂) =  ∃[ n ] ((∀ i → i < n → at∃ σ μ ϕ₁ i) × at∀ σ μ ϕ₂ n)
+  σ , μ ⊨ (ϕ₁ T ϕ₂) = (∃[ n ] ((∀ i → i < n → at∃ σ μ ϕ₁ i) × at∀ σ μ ϕ₂ n)) ⊎ (∀ i → at∀ σ μ ϕ₁ i)
 
-_≡_ : ∀ {n} → QLTL n → QLTL n → Set₁
-ϕ₁ ≡ ϕ₂ = ∀ {A} {σ : CounterpartTrace A} {μ} → (σ , μ ⊨ ϕ₁ → σ , μ ⊨ ϕ₂) × (σ , μ ⊨ ϕ₂ → σ , μ ⊨ ϕ₁)
+_≣_ : ∀ {n} → QLTL-alt n → QLTL-alt n → Set₁
+ϕ₁ ≣ ϕ₂ = ∀ {A} {σ : CounterpartTrace A} {μ} → (σ , μ ⊨ ϕ₁ → σ , μ ⊨ ϕ₂) × (σ , μ ⊨ ϕ₂ → σ , μ ⊨ ϕ₁)
