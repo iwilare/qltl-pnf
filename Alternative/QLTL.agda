@@ -3,6 +3,7 @@
 {-
   Syntax and semantics for QLTL with negation and all derived operators, using
   the alternative definitions for the then and until-forall operators.
+  The proof of their equivalence is shown in Alternative.Negation.
 -}
 module Alternative.QLTL where
 
@@ -37,11 +38,13 @@ data QLTL-alt : ℕ → Set where
     _W_  : ∀ {n} → QLTL-alt n → QLTL-alt n → QLTL-alt n
     _F_  : ∀ {n} → QLTL-alt n → QLTL-alt n → QLTL-alt n
     _T_  : ∀ {n} → QLTL-alt n → QLTL-alt n → QLTL-alt n
+    _F′_  : ∀ {n} → QLTL-alt n → QLTL-alt n → QLTL-alt n
+    _T′_  : ∀ {n} → QLTL-alt n → QLTL-alt n → QLTL-alt n
 
 infix 25 _∧_ _∨_
-infix 30 _U_ _W_ _F_ _T_
+infix 30 _U_ _W_ _F_ _T_ _F′_ _T′_
 infix 35 ∃<>_ ∀<>_
-infix 40 ◯_ A_ ♢_ □_ ♢*_ □*_
+infix 40 ◯_ A_ ♢_ □_ ♢*_ □*_ ♢′*_ □′*_
 infix 45 !_
 infix 50 _==_ _!=_
 
@@ -57,6 +60,12 @@ infix 50 _==_ _!=_
 
 □*_ : ∀ {n} → QLTL-alt n → QLTL-alt n
 □* ϕ = ϕ T false
+
+♢′*_ : ∀ {n} → QLTL-alt n → QLTL-alt n
+♢′* ϕ = true F′ ϕ
+
+□′*_ : ∀ {n} → QLTL-alt n → QLTL-alt n
+□′* ϕ = ϕ T′ false
 
 -- Counterpart semantics of extended QLTL with all derived operators
 infix 10 _,_⊨_
@@ -84,9 +93,11 @@ interleaved mutual
   σ , μ ⊨ (A ϕ) = at∀ σ μ ϕ 1
   σ , μ ⊨ (ϕ₁ U ϕ₂) = at∃ σ μ ϕ₁ until     at∃ σ μ ϕ₂
   σ , μ ⊨ (ϕ₁ W ϕ₂) = at∃ σ μ ϕ₁ weakUntil at∃ σ μ ϕ₂
-  -- Alternative definitions, using existential quantification in the intermediate part.
-  σ , μ ⊨ (ϕ₁ F ϕ₂) =  ∃[ n ] ((∀ i → i < n → at∃ σ μ ϕ₁ i) × at∀ σ μ ϕ₂ n)
-  σ , μ ⊨ (ϕ₁ T ϕ₂) = (∃[ n ] ((∀ i → i < n → at∃ σ μ ϕ₁ i) × at∀ σ μ ϕ₂ n)) ⊎ (∀ i → at∀ σ μ ϕ₁ i)
+  σ , μ ⊨ (ϕ₁ F ϕ₂) = at∀ σ μ ϕ₁ until     at∀ σ μ ϕ₂
+  σ , μ ⊨ (ϕ₁ T ϕ₂) = at∀ σ μ ϕ₁ weakUntil at∀ σ μ ϕ₂
+  -- Alternative definitions, using existential quantification in the intermediate and always part.
+  σ , μ ⊨ (ϕ₁ F′ ϕ₂) = at∃ σ μ ϕ₁ until     at∀ σ μ ϕ₂
+  σ , μ ⊨ (ϕ₁ T′ ϕ₂) = at∃ σ μ ϕ₁ weakUntil at∀ σ μ ϕ₂
 
 _≣_ : ∀ {n} → QLTL-alt n → QLTL-alt n → Set₁
 ϕ₁ ≣ ϕ₂ = ∀ {A} {σ : CounterpartTrace A} {μ} → (σ , μ ⊨ ϕ₁ → σ , μ ⊨ ϕ₂) × (σ , μ ⊨ ϕ₂ → σ , μ ⊨ ϕ₁)

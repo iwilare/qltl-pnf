@@ -35,3 +35,7 @@ example = ∃<> zero == suc zero
 
 - `Alternative/`: positive normal form results for the alternative definition of the `then` operator.
 - `All/`: collection of all results for ease of retrieval.
+
+## Requirements
+
+No external libraries have been used. The files are tested using Agda 2.6.2.
