@@ -18,7 +18,7 @@ open import Function using (_∘_)
 open import Function using (id)
 open import Level using (0ℓ; Level)
 open import Relation.Binary.Definitions
-open import Relation.Binary.PropositionalEquality using (subst; inspect; refl; sym) renaming (_≡_ to _≣_; [_] to ≣:)
+open import Relation.Binary.PropositionalEquality using (subst; inspect; refl; sym) renaming ([_] to ≣:)
 open import Relation.Nullary
 open import Relation.Nullary.Negation using (¬∃⟶∀¬; contraposition)
 
@@ -63,10 +63,10 @@ thm1 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
   where
 
     att∀ : ℕ → QLTL n → Set
-    att∀ i ϕ = ∀C∈ ↑ (C≤ i σ) μ ⇒ (_, s i σ ⊨ ϕ)
+    att∀ i ϕ = ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
 
     att∃ : ℕ → QLTL n → Set
-    att∃ i ϕ = ∃C∈ ↑ (C≤ i σ) μ ⇒ (_, s i σ ⊨ ϕ)
+    att∃ i ϕ = ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
 
     before∃ : ℕ → QLTL n → Set
     before∃ n ϕ = ∀ i → i < n → att∃ i ϕ
@@ -101,11 +101,11 @@ thm1 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
         ... | p with ↑ (C≤ n′ σ) μ
         ... | just x = ⊥-elim (all p)
 
-    then : μ , σ ⊨ ! (ϕ₁ U ϕ₂)
+    then : σ , μ ⊨ ! (ϕ₁ U ϕ₂)
          → ∀ n → before∃ n ϕ₁ → att∀ n (! ϕ₂)
     then a n i<n|∃ϕ₁ = ¬∃C→∀C¬ {x = ↑ (C≤ n σ) μ} (λ x → a (n , i<n|∃ϕ₁ , x))
 
-    ⇒ : μ , σ ⊨ ! (ϕ₁ U ϕ₂) → μ , σ ⊨ ((! ϕ₂) T (! ϕ₁ ∧ ! ϕ₂))
+    ⇒ : σ , μ ⊨ ! (ϕ₁ U ϕ₂) → σ , μ ⊨ ((! ϕ₂) T (! ϕ₁ ∧ ! ϕ₂))
     ⇒ a with max-prefix⊎strong-always ϕ₁
     ... | inj₁ (n , i<n|∃ϕ₁ , n|∀¬ϕ₁) =
              inj₁ (n , (λ i i<n → raise-exists {x = ↑ (C≤ i σ) μ}
@@ -114,7 +114,7 @@ thm1 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
                      , conjunct∀ {x = ↑ (C≤ n σ) μ} n|∀¬ϕ₁ (then a n i<n|∃ϕ₁))
     ... | inj₂ strong-always = inj₂ λ i → then a i λ i′ i′<i → strong-always i′
 
-    ⇐ : μ , σ ⊨ ((! ϕ₂) T (! ϕ₁ ∧ ! ϕ₂)) → μ , σ ⊨ ! (ϕ₁ U ϕ₂)
+    ⇐ : σ , μ ⊨ ((! ϕ₂) T (! ϕ₁ ∧ ! ϕ₂)) → σ , μ ⊨ ! (ϕ₁ U ϕ₂)
     ⇐ (inj₂ ∀i|∀ϕ₁∧¬ϕ₂) (n , i<n|∃ϕ₁ , n|∃ϕ₂) with ↑ (C≤ n σ) μ | ∀i|∀ϕ₁∧¬ϕ₂ n
     ... | just μn | un|¬ϕ₂ = un|¬ϕ₂ n|∃ϕ₂
     ⇐ (inj₁ (m , i<m|∃¬ϕ₂ , m|∀¬ϕ₁∧¬ϕ₂)) (n , i<n|∃ϕ₁ , n|∃ϕ₂) with <-cmp m n
@@ -132,10 +132,10 @@ thm2 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
   where
 
     att∀ : ℕ → QLTL n → Set
-    att∀ i ϕ = ∀C∈ ↑ (C≤ i σ) μ ⇒ (_, s i σ ⊨ ϕ)
+    att∀ i ϕ = ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
 
     att∃ : ℕ → QLTL n → Set
-    att∃ i ϕ = ∃C∈ ↑ (C≤ i σ) μ ⇒ (_, s i σ ⊨ ϕ)
+    att∃ i ϕ = ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
 
     before∃ : ℕ → QLTL n → Set
     before∃ n ϕ = ∀ i → i < n → att∃ i ϕ
@@ -170,7 +170,7 @@ thm2 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
         ... | p with ↑ (C≤ n′ σ) μ
         ... | just x = ⊥-elim (all p)
 
-    useful-negation : μ , σ ⊨ ! (ϕ₁ T ϕ₂)
+    useful-negation : σ , μ ⊨ ! (ϕ₁ T ϕ₂)
                   → ∃[ n ] (att∃ n (! ϕ₁)
                          × (∀ i → (∀ k → k < i → att∃ k ϕ₁) → att∃ i (! ϕ₂)))
     useful-negation a =
@@ -181,7 +181,7 @@ thm2 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
                   , ¬∀C→∃C¬ {x = ↑ (C≤ i σ) μ}
                   ] (¬×→¬⊎¬ (¬∃⟶∀¬ a i))
 
-    ⇒ : μ , σ ⊨ ! (ϕ₁ T ϕ₂) → μ , σ ⊨ ((! ϕ₂) U (! ϕ₁ ∧ ! ϕ₂))
+    ⇒ : σ , μ ⊨ ! (ϕ₁ T ϕ₂) → σ , μ ⊨ ((! ϕ₂) U (! ϕ₁ ∧ ! ϕ₂))
     ⇒ a with useful-negation a
     ... | m , m|¬ϕ₁ , then with max-prefix⊎strong-always ϕ₁
     ... | inj₁ (n , i<n|∃ϕ₁ , n|∀¬ϕ₁) with ≤-<-connex n m
@@ -191,7 +191,7 @@ thm2 {n} {ϕ₁} {ϕ₂} {A} {σ} {μ} = ⇒ , ⇐
     ⇒ a | m , m|¬ϕ₁ , then | inj₂ strong-always with ↑ (C≤ m σ) μ | strong-always m
     ... | just x | m|ϕ₁ = ⊥-elim (m|¬ϕ₁ m|ϕ₁)
 
-    ⇐ : μ , σ ⊨ ((! ϕ₂) U (! ϕ₁ ∧ ! ϕ₂)) → μ , σ ⊨ ! (ϕ₁ T ϕ₂)
+    ⇐ : σ , μ ⊨ ((! ϕ₂) U (! ϕ₁ ∧ ! ϕ₂)) → σ , μ ⊨ ! (ϕ₁ T ϕ₂)
     ⇐ (n , i<n|∃¬ϕ₂ , n|∃¬ϕ₁∧¬ϕ₂) (inj₂ ∀i|¬ϕ₂) with ↑ (C≤ n σ) μ | ∀i|¬ϕ₂ n
     ⇐ (n , i<n|∃¬ϕ₂ , (n|∃¬ϕ₁ , n|¬ϕ₂)) (inj₂ ∀i|¬ϕ₂) | just x | b = n|∃¬ϕ₁ b
     ⇐ (n , i<n|∃¬ϕ₂ , n|∃¬ϕ₁∧¬ϕ₂) (inj₁ (m , i<m|∃ϕ₁ , m|∀ϕ₂)) with <-cmp m n

@@ -1,83 +1,89 @@
 {-# OPTIONS --guardedness #-}
 
+{-
+  Equi-expressiveness between extended QLTL and its extended positive normal form PNF.
+  The translation function is defined as ^ and split into two definitions ^ and ^¬
+  to show to Agda that the procedure terminates in a finite number of steps.
+-}
 module PNF.Conversion where
 
-open import Data.Empty
-open import Data.Fin using (Fin)
-open import Data.Maybe
-open import Data.Nat using (ℕ; _∸_; _+_; _<_; _≤_; suc; zero; _<′_; _<‴_; _≤‴_)
-open import Data.Nat.Induction
-open import Data.Nat.Properties using (≤⇒≤′; ≤⇒≤‴; <-transˡ; <-trans; <⇒≤; <-cmp; ≤-<-connex)
 open import Data.Product
 open import Data.Sum
-open import Data.Unit hiding (_≤_)
+open import Data.Unit
 open import Function using (_∘_)
-open import Function using (id)
-open import Level using (0ℓ; Level)
-open import Relation.Binary.Definitions
-open import Relation.Binary.PropositionalEquality using (subst; inspect; refl; sym) renaming (_≡_ to _≣_; [_] to ≣:)
-open import Relation.Nullary
-open import Relation.Nullary.Negation using (¬∃⟶∀¬; contraposition)
+open import Relation.Nullary.Negation using (¬∃⟶∀¬)
 
 open import Predicates
 open import Counterpart
 open import Negation
-open import QLTL renaming (_,_⊨_ to _,_⊨QLTL_) renaming (_≡_ to _≡QLTL_) hiding (false; _∧_)
-open import PNF renaming (_,_⊨_ to _,_⊨PNF_) renaming (_≡_ to _≡PNF_)
+open import QLTL renaming (_,_⊨_ to _,_⊨QLTL_) renaming (_≣_ to _≣QLTL_) hiding (false; _∧_)
+open import PNF renaming (_,_⊨_ to _,_⊨PNF_) renaming (_≣_ to _≣PNF_)
 
-private
-  variable
-    ℓ : Level
-
-_≡_ : ∀ {n} → QLTL n → PNF n → Set₁
-ϕ₁ ≡ ϕ₂ = ∀ {A} {σ : CounterpartTrace A} {μ} → (μ , σ ⊨QLTL ϕ₁ → μ , σ ⊨PNF ϕ₂) × (μ , σ ⊨PNF ϕ₂ → μ , σ ⊨QLTL ϕ₁)
+-- Iff between satisfiability in QLTL and PNF for two formulas
+_≣_ : ∀ {n} → QLTL n → PNF n → Set₁
+ϕ₁ ≣ ϕ₂ = ∀ {A} {σ : CounterpartTrace A} {μ} → (σ , μ ⊨QLTL ϕ₁ → σ , μ ⊨PNF ϕ₂) × (σ , μ ⊨PNF ϕ₂ → σ , μ ⊨QLTL ϕ₁)
 
 interleaved mutual
 
   ^¬ : ∀ {n} → QLTL n → PNF n
   ^  : ∀ {n} → QLTL n → PNF n
 
-  ^ true        = true
-  ^ (! ϕ)       = ^¬ ϕ
-  ^ (∃<> ϕ)     = ∃<> ^ ϕ
-  ^ (◯ ϕ)      = ◯ ^ ϕ
-  ^ (ϕ₁ ∨ ϕ₂)   = ^ ϕ₁ ∨ ^ ϕ₂
-  ^ (ϕ₁ U ϕ₂)  = ^ ϕ₁ U ^ ϕ₂
-  ^ (ϕ₁ W ϕ₂)  = ^ ϕ₁ W ^ ϕ₂
+  -- Translation function with no negation
+  ^ true      = true
+  ^ (x == y)  = x == y
+  ^ (! ϕ)     = ^¬ ϕ
+  ^ (∃<> ϕ)   = ∃<> ^ ϕ
+  ^ (◯ ϕ)     = ◯ ^ ϕ
+  ^ (ϕ₁ ∨ ϕ₂) = ^ ϕ₁ ∨ ^ ϕ₂
+  ^ (ϕ₁ U ϕ₂) = ^ ϕ₁ U ^ ϕ₂
+  ^ (ϕ₁ W ϕ₂) = ^ ϕ₁ W ^ ϕ₂
 
-  ^¬ true       = false
-  ^¬ (! ϕ)      = ^ ϕ
-  ^¬ (∃<> ϕ)    = ∀<> (^¬ ϕ)
+  -- Translation function implicitly carrying a negation
+  ^¬ true      = false
+  ^¬ (x == y)  = x != y
+  ^¬ (! ϕ)     = ^ ϕ
+  ^¬ (∃<> ϕ)   = ∀<> (^¬ ϕ)
   ^¬ (◯ ϕ)     = A (^¬ ϕ)
-  ^¬ (ϕ₁ ∨ ϕ₂)  = ^¬ ϕ₁ ∧ ^¬ ϕ₂
+  ^¬ (ϕ₁ ∨ ϕ₂) = ^¬ ϕ₁ ∧ ^¬ ϕ₂
   ^¬ (ϕ₁ U ϕ₂) = (^¬ ϕ₂) T (^¬ ϕ₁ ∧ ^¬ ϕ₂)
   ^¬ (ϕ₁ W ϕ₂) = (^¬ ϕ₂) F (^¬ ϕ₁ ∧ ^¬ ϕ₂)
 
 interleaved mutual
 
-  ^-equivalence : ∀ {n} (ϕ : QLTL n) →     ϕ ≡ ^ ϕ
-  ^¬-negation   : ∀ {n} (ϕ : QLTL n) → (! ϕ) ≡ ^¬ ϕ
+  -- Main theorems:
+  -- Given a QLTL formula ϕ, ^ ϕ in PNF is equisatisfiable with the original formula ϕ.
+  ^-equivalence : ∀ {n} (ϕ : QLTL n) →     ϕ ≣ ^ ϕ
+  -- Dually, ^¬ ϕ in PNF is equisatisfiable with the negation of the original formula.
+  ^¬-negation   : ∀ {n} (ϕ : QLTL n) → (! ϕ) ≣ ^¬ ϕ
 
+  -- The proofs are similar to QLTL.Negation and PNF.Negation; however, here
+  -- we need to apply the inductive hypotheses on subformulas, and reusing the previously
+  -- shown theorem becomes non-trivial.
+
+  -- Show that ^ produces an equivalent formula:
   ^-equivalence (! ϕ) = ^¬-negation ϕ
   ^-equivalence true = (λ x → tt) , (λ x → tt)
+  ^-equivalence (x == y) = (λ z → z) , λ z → z
   ^-equivalence (ϕ₁ ∨ ϕ₂) = [ inj₁ ∘ proj₁ (^-equivalence ϕ₁) , inj₂ ∘ proj₁ (^-equivalence ϕ₂) ]
                           , [ inj₁ ∘ proj₂ (^-equivalence ϕ₁) , inj₂ ∘ proj₂ (^-equivalence ϕ₂) ]
   ^-equivalence (∃<> ϕ) = (λ (s , p) → s , proj₁ (^-equivalence ϕ) p)
                         , (λ (s , p) → s , proj₂ (^-equivalence ϕ) p)
   ^-equivalence (◯ ϕ) {σ = σ} {μ = μ} = (λ x → imply∃ {x = ↑ (C≤ 1 σ) μ} (proj₁ (^-equivalence ϕ)) x)
-                                        , (λ x → imply∃ {x = ↑ (C≤ 1 σ) μ} (proj₂ (^-equivalence ϕ)) x)
+                                      , (λ x → imply∃ {x = ↑ (C≤ 1 σ) μ} (proj₂ (^-equivalence ϕ)) x)
   ^-equivalence (ϕ₁ U ϕ₂) {σ = σ} {μ = μ} = congUntil (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₁ (^-equivalence ϕ₁)))
-                                                        (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₁ (^-equivalence ϕ₂)))
-                                            , congUntil (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₂ (^-equivalence ϕ₁)))
-                                                        (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₂ (^-equivalence ϕ₂)))
+                                                      (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₁ (^-equivalence ϕ₂)))
+                                          , congUntil (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₂ (^-equivalence ϕ₁)))
+                                                      (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₂ (^-equivalence ϕ₂)))
   ^-equivalence (ϕ₁ W ϕ₂)  {σ = σ} {μ = μ} = congWeakUntil (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₁ (^-equivalence ϕ₁)))
-                                                            (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₁ (^-equivalence ϕ₂)))
-                                            , congWeakUntil (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₂ (^-equivalence ϕ₁)))
-                                                            (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₂ (^-equivalence ϕ₂)))
+                                                           (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₁ (^-equivalence ϕ₂)))
+                                           , congWeakUntil (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₂ (^-equivalence ϕ₁)))
+                                                           (λ {i} → imply∃ {x = ↑ (C≤ i σ) μ} (proj₂ (^-equivalence ϕ₂)))
 
+  -- Show that ^¬ negates the formula:
   ^¬-negation true = (λ x → x tt) , (λ x x₁ → x)
+  ^¬-negation (x == y) = (λ x → x) , (λ x → x)
   ^¬-negation (! ϕ) {σ = σ} {μ = μ} with ^-equivalence ϕ {σ = σ} {μ = μ}
-  ... | ⇒ , ⇐ = (λ x → ⇒ (DNE x)) , (λ x → λ z → z (⇐ x))
+  ... | ⇒ , ⇐ = (λ x → ⇒ (DNE x)) , (λ x → λ z → z (⇐ x)) -- Go back to standard equivalence using DNE
   ^¬-negation (ϕ₁ U ϕ₂) {σ = σ} {μ = μ} =
         (λ x → congWeakUntil (λ {i} → imply∀ {x = ↑ (C≤ i σ) μ} (proj₁ (^¬-negation ϕ₂)) ∘ (¬∃C→∀C¬ {x = ↑ (C≤ i σ) μ}))
                             (λ {i} (p1 , p2) → conjunct∀ {x = ↑ (C≤ i σ) μ} (imply∀ {x = ↑ (C≤ i σ) μ} (proj₁ (^¬-negation ϕ₁)) (¬∃C→∀C¬ {x = ↑ (C≤ i σ) μ} p1))

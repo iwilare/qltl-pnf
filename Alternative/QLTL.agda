@@ -48,26 +48,26 @@ infix 30 !_
 infix 10 _,_⊨_
 
 interleaved mutual
-  _,_⊨_ : ∀ {A : Set} {n} → Elements n A → CounterpartTrace A → QLTL n → Set
-  at∀ : ∀ {A : Set} {n} → Elements n A → CounterpartTrace A → QLTL n → ℕ → Set
-  at∃ : ∀ {A : Set} {n} → Elements n A → CounterpartTrace A → QLTL n → ℕ → Set
+  _,_⊨_ : ∀ {A : Set} {n} → CounterpartTrace A → Assignment n A → QLTL n → Set
+  at∀ : ∀ {A : Set} {n} → CounterpartTrace A → Assignment n A → QLTL n → ℕ → Set
+  at∃ : ∀ {A : Set} {n} → CounterpartTrace A → Assignment n A → QLTL n → ℕ → Set
 
-  at∀ μ σ ϕ i = ∀C∈ ↑ (C≤ i σ) μ ⇒ (_, s i σ ⊨ ϕ)
-  at∃ μ σ ϕ i = ∃C∈ ↑ (C≤ i σ) μ ⇒ (_, s i σ ⊨ ϕ)
+  at∀ σ μ ϕ i = ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
+  at∃ σ μ ϕ i = ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
 
-  μ , σ ⊨ true = ⊤
-  μ , σ ⊨ false = ⊥
-  μ , σ ⊨ ! ϕ = ¬ μ , σ ⊨ ϕ
-  μ , σ ⊨ (ϕ₁ ∧ ϕ₂) = μ , σ ⊨ ϕ₁ × μ , σ ⊨ ϕ₂
-  μ , σ ⊨ (ϕ₁ ∨ ϕ₂) = μ , σ ⊨ ϕ₁ ⊎ μ , σ ⊨ ϕ₂
-  μ , σ ⊨ (∃<> ϕ) = ∃[ x ] (x , μ) , σ ⊨ ϕ
-  μ , σ ⊨ (∀<> ϕ) = ∀ x → (x , μ) , σ ⊨ ϕ
-  μ , σ ⊨ (A ϕ) = at∀ μ σ ϕ 1
-  μ , σ ⊨ (◯ ϕ) = at∃ μ σ ϕ 1
-  μ , σ ⊨ (ϕ₁ U ϕ₂) = ∃[ n ] ((∀ i → i < n → at∃ μ σ ϕ₁ i) × at∃ μ σ ϕ₂ n)
-  μ , σ ⊨ (ϕ₁ F ϕ₂) = ∃[ n ] ((∀ i → i < n → at∃ μ σ ϕ₁ i) × at∀ μ σ ϕ₂ n)
-  μ , σ ⊨ (ϕ₁ T ϕ₂) =(∃[ n ] ((∀ i → i < n → at∃ μ σ ϕ₁ i) × at∀ μ σ ϕ₂ n)) ⊎ (∀ i → at∀ μ σ ϕ₁ i)
-  μ , σ ⊨ (ϕ₁ W ϕ₂) =(∃[ n ] ((∀ i → i < n → at∃ μ σ ϕ₁ i) × at∃ μ σ ϕ₂ n)) ⊎ (∀ i → at∃ μ σ ϕ₁ i)
+  σ , μ ⊨ true = ⊤
+  σ , μ ⊨ false = ⊥
+  σ , μ ⊨ ! ϕ = ¬ σ , μ ⊨ ϕ
+  σ , μ ⊨ (ϕ₁ ∧ ϕ₂) = σ , μ ⊨ ϕ₁ × σ , μ ⊨ ϕ₂
+  σ , μ ⊨ (ϕ₁ ∨ ϕ₂) = σ , μ ⊨ ϕ₁ ⊎ σ , μ ⊨ ϕ₂
+  σ , μ ⊨ (∃<> ϕ) = ∃[ x ] σ , (x , μ) ⊨ ϕ
+  σ , μ ⊨ (∀<> ϕ) = ∀ x → σ , (x , μ) ⊨ ϕ
+  σ , μ ⊨ (A ϕ) = at∀ σ μ ϕ 1
+  σ , μ ⊨ (◯ ϕ) = at∃ σ μ ϕ 1
+  σ , μ ⊨ (ϕ₁ U ϕ₂) = ∃[ n ] ((∀ i → i < n → at∃ σ μ ϕ₁ i) × at∃ σ μ ϕ₂ n)
+  σ , μ ⊨ (ϕ₁ F ϕ₂) = ∃[ n ] ((∀ i → i < n → at∃ σ μ ϕ₁ i) × at∀ σ μ ϕ₂ n)
+  σ , μ ⊨ (ϕ₁ T ϕ₂) =(∃[ n ] ((∀ i → i < n → at∃ σ μ ϕ₁ i) × at∀ σ μ ϕ₂ n)) ⊎ (∀ i → at∀ σ μ ϕ₁ i)
+  σ , μ ⊨ (ϕ₁ W ϕ₂) =(∃[ n ] ((∀ i → i < n → at∃ σ μ ϕ₁ i) × at∃ σ μ ϕ₂ n)) ⊎ (∀ i → at∃ σ μ ϕ₁ i)
 
 _≡_ : ∀ {n} → QLTL n → QLTL n → Set₁
-ϕ₁ ≡ ϕ₂ = ∀ {A} {σ : CounterpartTrace A} {μ} → (μ , σ ⊨ ϕ₁ → μ , σ ⊨ ϕ₂) × (μ , σ ⊨ ϕ₂ → μ , σ ⊨ ϕ₁)
+ϕ₁ ≡ ϕ₂ = ∀ {A} {σ : CounterpartTrace A} {μ} → (σ , μ ⊨ ϕ₁ → σ , μ ⊨ ϕ₂) × (σ , μ ⊨ ϕ₂ → σ , μ ⊨ ϕ₁)

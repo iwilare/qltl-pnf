@@ -21,3 +21,7 @@ This repository contains the Agda definitions and proofs presented in the paper 
 
 - `Alternative/`: positive normal form results for the alternative definition of the `then` operator.
 - `All/`: collection of all results for ease of retrieval.
+
+## Remarks
+
+Formulas are represented using de Bruijn indices to ensure well-scopedness. Each formula is typed with a number `n : ℕ` indicating the size of the context.

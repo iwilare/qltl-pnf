@@ -1,5 +1,8 @@
 {-# OPTIONS --guardedness #-}
 
+{-
+  Classical notions of negation for the predicates of LTL, and classical negations for connectives.
+-}
 module Negation where
 
 open import Axiom.DoubleNegationElimination
@@ -18,9 +21,11 @@ open import Function using (_∘_)
 open import Function using (id)
 open import Level using (0ℓ; Level)
 open import Relation.Binary.Definitions
-open import Relation.Binary.PropositionalEquality using (subst; inspect; refl; sym) renaming (_≡_ to _≣_; [_] to ≣:)
+open import Relation.Binary.PropositionalEquality using (refl)
 open import Relation.Nullary
 open import Relation.Nullary.Negation using (¬∃⟶∀¬; contraposition)
+
+open import Relation.Unary renaming (∁ to ¬′; _∩_ to _∧′_)
 
 open import Predicates
 
@@ -28,11 +33,12 @@ private
   variable
     ℓ : Level
 
+-- Postulate classical principles
 postulate
   LEM : ExcludedMiddle ℓ
   DNE : DoubleNegationElimination ℓ
-  Ext : Extensionality ℓ ℓ
 
+-- Classical reasoning on conjunction and disjunction
 ¬×→¬⊎¬ : ∀ {A B : Set ℓ} → ¬ (A × B) → (¬ A ⊎ ¬ B)
 ¬×→¬⊎¬ {ℓ} {A} neg with LEM {ℓ} {A}
 ... | yes p = inj₂ λ x → neg (p , x)
@@ -43,51 +49,39 @@ postulate
 ... | yes p = (λ x → neg (inj₁ x)) , (λ x → neg (inj₁ p))
 ... | no ¬p = ¬p , (λ x → neg (inj₂ x))
 
+-- Classical reasoning on existential and universal quantification
 ¬∀¬⟶∃ : ∀ {A : Set ℓ} {P : A → Set ℓ} → ¬ (∀ x → ¬ P x) → (∃[ n ] P n)
 ¬∀¬⟶∃ x = DNE λ z → x (λ x z₁ → z (x , z₁))
 
 ¬∀⟶∃¬ : ∀ {A : Set ℓ} {P : A → Set ℓ} → ¬ (∀ x → P x) → (∃[ n ] ¬ P n)
 ¬∀⟶∃¬ {P = P} x = ¬∀¬⟶∃ {P = λ x → ¬ P x} λ x₁ → x λ x₂ → DNE (x₁ x₂)
 
-_¬until_ : ∀ (A B : ℕ → Set) → Set
-A ¬until B = ∀ n → ((∃[ i ] i < n × A i) ⊎ B n)
-
+-- Alternative form for the negation of until: whenever A before n, then not B
 _¬untilLeft_ : ∀ (A B : ℕ → Set) → Set
 A ¬untilLeft B = ∀ n → (A before n → B n)
-
-_¬weakUntil_ : ∀ (A B : ℕ → Set) → Set
-A ¬weakUntil B = A ¬until B × eventually A
 
 _¬weakUntilLeft_ : ∀ (A B : ℕ → Set) → Set
 A ¬weakUntilLeft B = A ¬untilLeft B × eventually A
 
-u¬u : ∀ {A B} → ¬ A until B → (¬′ A) ¬until (¬′ B)
-u¬u nu = λ i → [ (λ x → inj₁ let a , b = ¬∀⟶∃¬ x in a , let b , c = ¬∀⟶∃¬ x in ¬∀⟶∃¬ c) , (λ x → inj₂ x) ] (¬×→¬⊎¬ ((¬∃⟶∀¬ nu) i))
-
+-- The negation of until can be expressed as untilLeft with B negated
 u¬ul : ∀ {A B} → ¬ A until B → A ¬untilLeft (¬′ B)
 u¬ul nu = λ i → [ (λ x → λ z _ → x z) , (λ x → λ _ → x) ] (¬×→¬⊎¬ ((¬∃⟶∀¬ nu) i))
 
-a→e : ∀ {A} → ¬ always A → eventually (¬′ A)
-a→e = ¬∀⟶∃¬
-
-e→a : ∀ {A} → ¬ eventually A → always (¬′ A)
-e→a = λ z i z₁ → z (i , z₁)
-
-wu¬wu : ∀ {A B} → ¬ A weakUntil B → (¬′ A) ¬weakUntil (¬′ B)
-wu¬wu nu = < (λ x → u¬u (proj₁ x)) , (λ x → a→e (proj₂ x)) > (¬⊎→¬×¬ nu)
-
+-- The negation of weak until can be expressed as untilLeft with B negated along with eventually not A
 wu¬wul : ∀ {A B} → ¬ A weakUntil B → A ¬untilLeft (¬′ B) × eventually (¬′ A)
-wu¬wul nu = < (λ x → u¬ul (proj₁ x)) , (λ x → a→e (proj₂ x)) > (¬⊎→¬×¬ nu)
+wu¬wul nu = < (λ x → u¬ul (proj₁ x)) , (λ x → ¬∀⟶∃¬ (proj₂ x)) > (¬⊎→¬×¬ nu)
 
+-- Either there exists a point where A does not hold or A always holds
 strong-prefix-lem : ∀ {A} → A until (¬′ A) ⊎ always A
 strong-prefix-lem {A} with LEM {P = A until (¬′ A)}
 ... | yes y = inj₁ y
-... | no n = inj₂ (λ i → wow i (<′-wellFounded i))
+... | no n = inj₂ (λ i → wf-induction-always-A i (<′-wellFounded i))
     where
-      wow : ∀ i → Acc _<′_ i → A i
-      wow i (acc rs) with u¬u n i
-      ... | inj₂ y = DNE y
-      ... | inj₁ (n′ , n′<i , all) = ⊥-elim (all (wow n′ (rs n′ (≤⇒≤′ n′<i))))
+      wf-induction-always-A : ∀ i → Acc _<′_ i → A i
+      wf-induction-always-A i (acc rs) =
+        DNE (u¬ul n i (λ i′ i′<i → wf-induction-always-A i′ (rs i′ (≤⇒≤′ i′<i))))
+
+-- Classical negations of until and weak until
 
 ¬until→weakUntil : ∀ {A B} → ¬ A until B → (¬′ B) weakUntil (¬′ A ∧′ ¬′ B)
 ¬until→weakUntil {A} nu =
