@@ -1,80 +1,90 @@
 {-# OPTIONS --guardedness #-}
 
 {-
-  Syntax and semantics of extended QLTL.
+  Syntax and semantics for QLTL with negation and all derived operators.
 -}
 module QLTL where
 
 open import Data.Empty
 open import Data.Maybe
 open import Data.Nat using (ℕ; suc)
-open import Data.Product using (_,_; _×_; ∃-syntax)
-open import Data.Sum using (_⊎_; inj₁; inj₂)
+open import Data.Product
+open import Data.Sum
 open import Data.Unit
+open import Relation.Nullary
 open import Data.Fin
-open import Relation.Binary.PropositionalEquality using (_≡_)
+open import Relation.Unary hiding (U)
+open import Relation.Binary.PropositionalEquality using (_≡_; _≢_)
 
 open import Counterpart
 open import Predicates
 open import Negation
 
--- Syntax of extended QLTL
+-- Syntax of full QLTL
 data QLTL : ℕ → Set where
-    true : ∀ {n} → QLTL n
-    _==_ : ∀ {n} → Fin  n → Fin  n → QLTL n
-    !_   : ∀ {n} → QLTL n → QLTL n
-    _∨_  : ∀ {n} → QLTL n → QLTL n → QLTL n
-    ∃<>_ : ∀ {n} → QLTL (suc n) → QLTL n
+    true  : ∀ {n} → QLTL n
+    false : ∀ {n} → QLTL n
+    !_    : ∀ {n} → QLTL n → QLTL n
+    _∧_   : ∀ {n} → QLTL n → QLTL n → QLTL n
+    _∨_   : ∀ {n} → QLTL n → QLTL n → QLTL n
+    _==_  : ∀ {n} → Fin n  → Fin n  → QLTL n
+    _!=_  : ∀ {n} → Fin n  → Fin n  → QLTL n
+    ∃<>_  : ∀ {n} → QLTL (suc n) → QLTL n
+    ∀<>_  : ∀ {n} → QLTL (suc n) → QLTL n
     ◯_   : ∀ {n} → QLTL n → QLTL n
+    A_   : ∀ {n} → QLTL n → QLTL n
     _U_  : ∀ {n} → QLTL n → QLTL n → QLTL n
+    _F_  : ∀ {n} → QLTL n → QLTL n → QLTL n
     _W_  : ∀ {n} → QLTL n → QLTL n → QLTL n
+    _T_  : ∀ {n} → QLTL n → QLTL n → QLTL n
+    _UD_  : ∀ {n} → QLTL n → QLTL n → QLTL n
+    _FD_  : ∀ {n} → QLTL n → QLTL n → QLTL n
+    _WD_  : ∀ {n} → QLTL n → QLTL n → QLTL n
+    _TD_  : ∀ {n} → QLTL n → QLTL n → QLTL n
 
 infix 25 _∧_ _∨_
-infix 30 _U_ _W_
-infix 35 ∃<>_
-infix 40 ◯_ ♢_ □_
+infix 30 _U_ _F_ _W_ _T_ _UD_ _FD_ _WD_ _TD_
+infix 35 ∃<>_ ∀<>_
+infix 40 ◯_ A_ ♢_ □_ ♢*_ □*_
 infix 45 !_
-infix 50 _==_
+infix 50 _==_ _!=_
 
 -- Syntactically defined shorthands
-false : ∀ {n} → QLTL n
-false = ! true
-
 ♢_ : ∀ {n} → QLTL n → QLTL n
 ♢ ϕ = true U ϕ
 
 □_ : ∀ {n} → QLTL n → QLTL n
-□ ϕ = ϕ W ! true
+□ ϕ = ϕ T false
 
-_∧_ : ∀ {n} → QLTL n → QLTL n → QLTL n
-ϕ₁ ∧ ϕ₂ = ! (! ϕ₁ ∨ ! ϕ₂)
+♢*_ : ∀ {n} → QLTL n → QLTL n
+♢* ϕ = true F ϕ
 
--- Counterpart semantics of extended QLTL
+□*_ : ∀ {n} → QLTL n → QLTL n
+□* ϕ = ϕ T false
+
+-- Counterpart semantics of extended QLTL with all derived operators
 infix 10 _,_⊨_
 
-interleaved mutual
-  _,_⊨_ : ∀ {A : Set} {n} → CounterpartTrace A → Assignment n A → QLTL n → Set
-  at∃ : ∀ {A : Set} {n} → CounterpartTrace A → Assignment n A → QLTL n → ℕ → Set
+_,_⊨_ : ∀ {A : Set} {n} → CounterpartTrace A → Assignment n A → QLTL n → Set
+σ , μ ⊨ true = ⊤
+σ , μ ⊨ false = ⊥
+σ , μ ⊨ ! ϕ = ¬ σ , μ ⊨ ϕ
+σ , μ ⊨ x == y = μ [ x ] ≡ μ [ y ]
+σ , μ ⊨ x != y = μ [ x ] ≢ μ [ y ]
+σ , μ ⊨ (ϕ₁ ∧ ϕ₂) = σ , μ ⊨ ϕ₁ × σ , μ ⊨ ϕ₂
+σ , μ ⊨ (ϕ₁ ∨ ϕ₂) = σ , μ ⊨ ϕ₁ ⊎ σ , μ ⊨ ϕ₂
+σ , μ ⊨ (∃<> ϕ) = ∃[ x ] σ , (x , μ) ⊨ ϕ
+σ , μ ⊨ (∀<> ϕ) = ∀ x → σ , (x , μ) ⊨ ϕ
+σ , μ ⊨ (◯ ϕ) = ∃C∈ ↑ (C≤ 1 σ) μ ⇒ (s 1 σ ,_⊨ ϕ)
+σ , μ ⊨ (A ϕ) = ∀C∈ ↑ (C≤ 1 σ) μ ⇒ (s 1 σ ,_⊨ ϕ)
+σ , μ ⊨ (ϕ₁ U ϕ₂)  = (λ i → ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₁)) until     (λ i → ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₂))
+σ , μ ⊨ (ϕ₁ F ϕ₂)  = (λ i → ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₁)) until     (λ i → ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₂))
+σ , μ ⊨ (ϕ₁ UD ϕ₂) = (λ i → ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₁)) until     (λ i → ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₁) × ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₂))
+σ , μ ⊨ (ϕ₁ FD ϕ₂) = (λ i → ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₁)) until     (λ i → ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₁) ⊎ ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₂))
+σ , μ ⊨ (ϕ₁ W ϕ₂)  = (λ i → ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₁)) weakUntil (λ i → ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₂)) 
+σ , μ ⊨ (ϕ₁ T ϕ₂)  = (λ i → ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₁)) weakUntil (λ i → ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₂))
+σ , μ ⊨ (ϕ₁ WD ϕ₂) = (λ i → ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₁)) weakUntil (λ i → ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₁) × ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₂))
+σ , μ ⊨ (ϕ₁ TD ϕ₂) = (λ i → ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₁)) weakUntil (λ i → ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₁) ⊎ ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ₂))
 
-  -- Shorthand expressing: "There exists a counterpart for μ in σ after i steps that satisfies ϕ"
-  at∃ σ μ ϕ i = ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
-
-  -- Satisfiability relation
-  σ , μ ⊨ true = ⊤
-  σ , μ ⊨ ! ϕ = σ , μ ⊨ ϕ → ⊥
-  σ , μ ⊨ x == y = μ [ x ] ≡ μ [ y ]
-  σ , μ ⊨ (ϕ₁ ∨ ϕ₂) = σ , μ ⊨ ϕ₁ ⊎ σ , μ ⊨ ϕ₂
-  σ , μ ⊨ (∃<> ϕ) = ∃[ x ] σ , (x , μ) ⊨ ϕ
-  σ , μ ⊨ (◯ ϕ) = at∃ σ μ ϕ 1
-  σ , μ ⊨ (ϕ₁ U ϕ₂) = at∃ σ μ ϕ₁ until     at∃ σ μ ϕ₂
-  σ , μ ⊨ (ϕ₁ W ϕ₂) = at∃ σ μ ϕ₁ weakUntil at∃ σ μ ϕ₂
-
--- Extended QLTL equivalence
 _≣_ : ∀ {n} → QLTL n → QLTL n → Set₁
 ϕ₁ ≣ ϕ₂ = ∀ {A} {σ : CounterpartTrace A} {μ} → (σ , μ ⊨ ϕ₁ → σ , μ ⊨ ϕ₂) × (σ , μ ⊨ ϕ₂ → σ , μ ⊨ ϕ₁)
-
--- Example of a simple formula to illustrate de Bruijn-based scoping.
--- The formula has type `QLTL 1` since y appears free, thus the context has at least 1 variable
-example : QLTL 1
-example = ∃<> zero == suc zero
-       -- ∃x. x == y

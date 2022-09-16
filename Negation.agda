@@ -37,23 +37,31 @@ postulate
   LEM : ExcludedMiddle ℓ
   DNE : DoubleNegationElimination ℓ
 
--- Classical reasoning on conjunction and disjunction
-¬×→¬⊎¬ : ∀ {A B : Set ℓ} → ¬ (A × B) → (¬ A ⊎ ¬ B)
-¬×→¬⊎¬ {ℓ} {A} neg with LEM {ℓ} {A}
-... | yes p = inj₂ λ x → neg (p , x)
-... | no ¬p = inj₁ ¬p
+abstract
+  -- Classical reasoning on conjunction and disjunction
+  ¬×→¬⊎¬ : ∀ {A B : Set ℓ} → ¬ (A × B) → (¬ A ⊎ ¬ B)
+  ¬×→¬⊎¬ {ℓ} {A} neg with LEM {ℓ} {A}
+  ... | yes p = inj₂ λ x → neg (p , x)
+  ... | no ¬p = inj₁ ¬p
 
-¬⊎→¬×¬ : ∀ {A B : Set ℓ} → ¬ (A ⊎ B) → (¬ A × ¬ B)
-¬⊎→¬×¬ {ℓ} {A} neg with LEM {ℓ} {A}
-... | yes p = (λ x → neg (inj₁ x)) , (λ x → neg (inj₁ p))
-... | no ¬p = ¬p , (λ x → neg (inj₂ x))
+  -- Classical reasoning on conjunction and disjunction
+  ¬×←¬⊎¬ : ∀ {A B : Set ℓ} → (¬ A ⊎ ¬ B) → ¬ (A × B) 
+  ¬×←¬⊎¬ {ℓ} {A} (inj₁ x) = λ z → x (proj₁ z)
+  ¬×←¬⊎¬ {ℓ} {A} (inj₂ y) = λ z → y (proj₂ z)
 
--- Classical reasoning on existential and universal quantification
-¬∀¬⟶∃ : ∀ {A : Set ℓ} {P : A → Set ℓ} → ¬ (∀ x → ¬ P x) → (∃[ n ] P n)
-¬∀¬⟶∃ x = DNE λ z → x (λ x z₁ → z (x , z₁))
+  ¬⊎→¬×¬ : ∀ {A B : Set ℓ} → ¬ (A ⊎ B) → (¬ A × ¬ B)
+  ¬⊎→¬×¬ {ℓ} {A} neg with LEM {ℓ} {A}
+  ... | yes p = (λ x → neg (inj₁ x)) , (λ x → neg (inj₁ p))
+  ... | no ¬p = ¬p , (λ x → neg (inj₂ x))
 
-¬∀⟶∃¬ : ∀ {A : Set ℓ} {P : A → Set ℓ} → ¬ (∀ x → P x) → (∃[ n ] ¬ P n)
-¬∀⟶∃¬ {P = P} x = ¬∀¬⟶∃ {P = λ x → ¬ P x} λ x₁ → x λ x₂ → DNE (x₁ x₂)
+  -- Classical reasoning on existential and universal quantification
+  ¬∀¬⟶∃ : ∀ {A : Set ℓ} {P : A → Set ℓ} → ¬ (∀ x → ¬ P x) → (∃[ n ] P n)
+  ¬∀¬⟶∃ x = DNE λ z → x (λ x z₁ → z (x , z₁))
+
+  ¬∀⟶∃¬ : ∀ {A : Set ℓ} {P : A → Set ℓ} → ¬ (∀ x → P x) → (∃[ n ] ¬ P n)
+  ¬∀⟶∃¬ {P = P} x = ¬∀¬⟶∃ {P = λ x → ¬ P x} λ x₁ → x λ x₂ → DNE (x₁ x₂)
+
+open import Relation.Nullary.Negation using (¬∃⟶∀¬) public
 
 -- Alternative form for the negation of until: whenever A before n, then not B
 _¬untilLeft_ : ∀ (A B : ℕ → Set) → Set
@@ -91,13 +99,6 @@ strong-prefix-lem {A} with LEM {P = A until (¬′ A)}
     , (λ Ai → inj₂ λ i x → u¬ul nu i (λ k k<i → Ai k) x)
     ]′ (strong-prefix-lem {A})
 
-¬until←weakUntil : ∀ {A B} → (¬′ B) weakUntil (¬′ A ∧′ ¬′ B) → ¬ A until B
-¬until←weakUntil (inj₁ (m , !Bi<m , !Am , !Bm)) (n , Ai<n , Bn) with <-cmp m n
-... | tri< m<n _ _ = !Am (Ai<n m m<n)
-... | tri≈ _ refl _ = !Bm Bn
-... | tri> _ _ n<m = !Bi<m n n<m Bn
-¬until←weakUntil (inj₂ !Bi) (n , Ai<n , Bn) = !Bi n Bn
-
 ¬weakUntil→until : ∀ {A B} → ¬ A weakUntil B → (¬′ B) until (¬′ A ∧′ ¬′ B)
 ¬weakUntil→until {A} nu with wu¬wul nu
 ... | then , (n , !An) with strong-prefix-lem {A}
@@ -105,9 +106,22 @@ strong-prefix-lem {A} with LEM {P = A until (¬′ A)}
        n , (λ k k<n → then k λ i i<k → Ai<n i (<-trans i<k k<n)) , !An , then n Ai<n
 ... | inj₂ Ai = ⊥-elim (!An (Ai n))
 
+¬until←weakUntil : ∀ {A B} → (¬′ B) weakUntil (¬′ A ∧′ ¬′ B) → ¬ A until B
+¬until←weakUntil (inj₁ (m , !Bi<m , !Am , !Bm)) (n , Ai<n , Bn) with <-cmp m n
+... | tri< m<n _ _ = !Am (Ai<n m m<n)
+... | tri≈ _ refl _ = !Bm Bn
+... | tri> _ _ n<m = !Bi<m n n<m Bn
+¬until←weakUntil (inj₂ !Bi) (n , Ai<n , Bn) = !Bi n Bn
+
 ¬weakUntil←until : ∀ {A B} → (¬′ B) until (¬′ A ∧′ ¬′ B) → ¬ A weakUntil B
 ¬weakUntil←until (n , !Bi<n , !An , !Bn) (inj₁ (m , Ai<m , Bm)) with <-cmp m n
 ... | tri< m<n _ _ = !Bi<n m m<n Bm
 ... | tri≈ _ refl _ = !Bn Bm
 ... | tri> _ _ n<m = !An (Ai<m n n<m)
 ¬weakUntil←until (n , !Bi<n , !An , !Bn) (inj₂ Ai) = !An (Ai n)
+
+postulate
+  1¬weakUntil←until : ∀ {A B} → (¬′ B) until (¬′ A ∧′ ¬′ B) → ¬ A weakUntil B
+  1¬until←weakUntil : ∀ {A B} → (¬′ B) weakUntil (¬′ A ∧′ ¬′ B) → ¬ A until B
+  1¬weakUntil→until : ∀ {A B} → ¬ A weakUntil B → (¬′ B) until (¬′ A ∧′ ¬′ B)
+  1¬until→weakUntil : ∀ {A B} → ¬ A until B → (¬′ B) weakUntil (¬′ A ∧′ ¬′ B)

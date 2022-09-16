@@ -3,33 +3,45 @@
 {-
   Base definitions for counterpart-based semantics: models, traces, theorems and properties used in the main theorems relating semantics and negations.
 -}
-module Counterpart where
+module Counterpart {ℓ} where
 
 open import Data.Empty
 open import Data.Maybe
 open import Data.Nat using (ℕ; suc; zero)
 open import Data.Nat.Induction
-open import Data.Product using (_,_; _×_)
+open import Data.Product using (_,_; _×_; Σ; ∃-syntax; proj₁; proj₂)
 open import Data.Fin
 open import Data.Sum using (_⊎_; inj₁; inj₂)
-open import Data.Unit
 open import Relation.Binary.PropositionalEquality using (_≡_; trans; subst; refl; sym)
 open import Relation.Nullary
+open import Relation.Binary
+open import Relation.Unary
+open import Relation.Binary.Construct.Composition using (_;_)
+open import Level renaming (suc to sucℓ)
+open import Function
+
+import Data.Unit
+open import Data.Unit.Polymorphic using (⊤)
+
+pattern * = lift Data.Unit.tt
+
+Relation : Set ℓ → Set ℓ → Set (sucℓ ℓ)
+Relation A B = REL A B ℓ
 
 -- For simplicity, we do not consider models in full, and directly work with counterpart traces.
 -- Each trace defines autonomously the set of Assignment it works on pointwise.
-record CounterpartTrace (A : Set) : Set₁ where
+record CounterpartTrace (A : Set ℓ) : Set (sucℓ ℓ) where
   constructor _∷_
   coinductive
   field
-    {B}    : Set
-    rel    : A → Maybe B
+    {B}    : Set ℓ
+    rel    : Relation A B
     tail   : CounterpartTrace B
 
 open CounterpartTrace public
 
 -- World of the trace after i steps
-wi : ∀ {A : Set} → ℕ → CounterpartTrace A → Set
+wi : ∀ {A} → ℕ → CounterpartTrace A → Set ℓ
 wi {A} zero T = A
 wi (suc n) T = wi n (tail T)
 
@@ -43,9 +55,85 @@ _>=>_ : ∀ {A B C : Set} → (A → Maybe B) → (B → Maybe C) → A → Mayb
 _>=>_ f g = λ x → f x >>= g
 
 -- Composition of the first i counterpart relations
-C≤ : ∀ {A} → (n : ℕ) → (σ : CounterpartTrace A) → A → Maybe (wi n σ)
-C≤ zero σ = just
-C≤ (suc n) σ = rel σ >=> C≤ n (tail σ)
+C≤ : ∀ {A} → (n : ℕ) → (σ : CounterpartTrace A) → Relation A (wi n σ)
+C≤ zero σ = _≡_
+C≤ (suc n) σ = rel σ ; C≤ n (tail σ)
+
+-- Assignment for a given set A with n variables, simply defined as the cartesian product
+Assignment : ℕ → Set ℓ → Set ℓ
+Assignment zero A = ⊤
+Assignment (suc n) A = A × Assignment n A
+
+-- Lookup function for an assignment with n variables
+_[_] : ∀ {A n} → Assignment n A → (i : Fin n) → A
+(x , μ) [ zero  ] = x
+(x , μ) [ suc i ] = μ [ i ]
+
+-- Lifting of a counterpart relation to assignments
+↑ : ∀ {n} {A B : Set ℓ} → Relation A B → Relation (Assignment n A) (Assignment n B)
+↑ {n = zero} f = λ { * * → ⊤ }
+↑ {n = suc n} f = λ { (a , b) (a′ , b′) → f a a′ × ↑ f b b′}
+
+-- Lifting a predicate universally: either a counterpart is absent or A holds on it
+∀C∈_⇒_ : ∀ {A : Set ℓ} → (A → Set ℓ) → (A → Set ℓ) → Set ℓ
+∀C∈ C ⇒ P = ∀ c → C c → P c
+
+-- Lifting a predicate existentially: a counterpart exists and A holds on it
+∃C∈_⇒_ : ∀ {A : Set ℓ} → (A → Set ℓ) → (A → Set ℓ) → Set ℓ
+∃C∈ C ⇒ P = ∃[ c ] C c × P c 
+
+open import Negation
+
+-- Negation of existential and universal liftings for counterparts
+¬∃C⟶∀C¬ : ∀ {A : Set ℓ} → {P Q : A → Set ℓ} → ¬ (∃C∈ P ⇒ Q) → ∀C∈ P ⇒ (∁ Q)
+¬∃C⟶∀C¬ x = ¬∃⟶∀¬ ∘ ¬∃⟶∀¬ x
+
+¬∀C⟶∃C¬ : ∀ {A : Set ℓ} → {P Q : A → Set ℓ} → ¬ (∀C∈ P ⇒ Q) → ∃C∈ P ⇒ (∁ Q)
+¬∀C⟶∃C¬ x with ¬∀⟶∃¬ x
+... | a , b = a , ¬∀⟶∃¬ b
+
+¬∃C←∀C¬ : ∀ {A : Set ℓ} → {P Q : A → Set ℓ} → ∀C∈ P ⇒ (∁ Q) → ¬ (∃C∈ P ⇒ Q)
+¬∃C←∀C¬ f (a , b , c) = f a b c
+
+¬∀C←∃C¬ : ∀ {A : Set ℓ} → {P Q : A → Set ℓ} → ∃C∈ P ⇒ (∁ Q) → ¬ (∀C∈ P ⇒ Q)
+¬∀C←∃C¬ (a , b , c) f = c (f a b)
+
+-- Conjunction for universal and existential lifting of predicates
+∀→∩ : ∀ {A : Set ℓ} → {P A B : A → Set ℓ} → (∀C∈ P ⇒ A) → (∀C∈ P ⇒ B) → (∀C∈ P ⇒ (A ∩ B))
+∀→∩ = λ z z₁ c z₂ → z c z₂ , z₁ c z₂
+
+∀←∩ : ∀ {A : Set ℓ} → {P A B : A → Set ℓ} → (∀C∈ P ⇒ (A ∩ B)) → (∀C∈ P ⇒ A) × (∀C∈ P ⇒ B) 
+∀←∩ = λ x → (λ c z → proj₁ (x c z)) , λ c z → proj₂ (x c z)
+
+∃→∪ : ∀ {A : Set ℓ} → {P A B : A → Set ℓ} → (∃C∈ P ⇒ A) ⊎ (∃C∈ P ⇒ B) → (∃C∈ P ⇒ (A ∪ B))
+∃→∪ = λ { (inj₁ (fst , fst₁ , snd)) → fst , fst₁ , inj₁ snd
+        ; (inj₂ (fst , fst₁ , snd)) → fst , fst₁ , inj₂ snd }
+        
+∃→∩ : ∀ {A : Set ℓ} → {P A B : A → Set ℓ} → (∃C∈ P ⇒ (A ∩ B)) → (∃C∈ P ⇒ A) × (∃C∈ P ⇒ B) 
+∃→∩ = λ { (fst , fst₁ , fst₂ , snd) → (fst , fst₁ , fst₂) , fst , fst₁ , snd }
+
+  
+{-
+conjunctI∃ : ∀ {A : Set ℓ} → {P A B : A → Set ℓ} → (∃C∈ P ⇒ A) → (∃C∈ P ⇒ B) → (∃C∈ P ⇒ (A ∩ B))
+conjunctI∃ (a , b , c) (d , e , f) = {!   !}
+
+-- Disjunction for universal and existential lifting of predicates
+disjunctElim∀ : ∀ {A : Set ℓ} → {P A B : A → Set ℓ} → (∀C∈ P ⇒ (A ∩ B)) → (∀C∈ P ⇒ A) × (∀C∈ P ⇒ B)
+disjunctElim∀ = {!   !}
+
+disjunctElim∃ : ∀ {A : Set ℓ} → {P A B : A → Set ℓ} → (∃C∈ P ⇒ (A ∩ B)) → (∃C∈ P ⇒ A) × (∃C∈ P ⇒ B)
+disjunctElim∃ = {!   !}
+
+-- Pointwise-implication for universal and existential lifting of predicates
+imply∀ : ∀ {A : Set ℓ} → {P A B : A → Set ℓ} → (∀ {p} → A p → B p) → (∀C∈ P ⇒ A) → (∀C∈ P ⇒ B)
+imply∀ = λ z z₁ c z₂ → z (z₁ c z₂)
+
+imply∃ : ∀ {A : Set ℓ} → {P A B : A → Set ℓ} → (∀ {p} → A p → B p) → (∃C∈ P ⇒ A) → (∃C∈ P ⇒ B)
+imply∃ = {!   !}
+-}
+
+{-
+∪
 
 -- Applicative-like definition combining two partial functions into into their product
 <*,*> : ∀ {A B C D : Set} → (A → Maybe C) → (B → Maybe D) → (A × B) → Maybe (C × D)
@@ -67,20 +155,6 @@ monad-law2 {f = f} x with f x
 ... | just x₁ = refl
 ... | nothing = refl
 
--- Assignment for a given set A with n variables, simply defined as the cartesian product
-Assignment : ℕ → Set → Set
-Assignment zero A = ⊤
-Assignment (suc n) A = A × Assignment n A
-
--- Lookup function for an assignment with n variables
-_[_] : ∀ {A n} → Assignment n A → (i : Fin n) → A
-(x , μ) [ zero  ] = x
-(x , μ) [ suc i ] = μ [ i ]
-
--- Lifting of a counterpart function to assignments
-↑ : ∀ {n} {A B : Set} → (A → Maybe B) → Assignment n A → Maybe (Assignment n B)
-↑ {n = zero} f = λ { tt → just tt }
-↑ {n = suc n} f = <*,*> f (↑ f)
 
 -- Extensionality-like property for the product of partial functions
 <*,*>-ext : ∀ {A B C D} {f f′ : A → Maybe B} {g g′ : C → Maybe D} {x e}
@@ -153,32 +227,28 @@ del-counterparts {_} {_} {σ} {n} {μ} eq rewrite ↑-ext-cong {μ = μ} (monad-
                     | ↑-homomorphism {f = rel σ} {g = C≤ n (tail σ)} μ
                     | eq = refl
 
--- Lifting a predicate to Maybe A universally: either a counterpart is absent or A holds on it
+-- Lifting a predicate universally: either a counterpart is absent or A holds on it
 ∀C∈_⇒_ : ∀ {A : Set} → Maybe A → (A → Set) → Set
 ∀C∈ nothing ⇒ P = ⊤
 ∀C∈ just x ⇒ P = P x
 
--- Lifting a predicate to Maybe A existentially: a counterpart exists and A holds on it
+-- Lifting a predicate existentially: a counterpart exists and A holds on it
 ∃C∈_⇒_ : ∀ {A : Set} → Maybe A → (A → Set) → Set
 ∃C∈ nothing ⇒ P = ⊥
 ∃C∈ just x ⇒ P = P x
 
 -- Negation of existential and universal liftings for counterparts
 ¬∃C←∀C¬ : ∀ {A : Set} → {P : A → Set} → {x : Maybe A} → ∀C∈ x ⇒ (λ x → ¬ P x) → ¬ (∃C∈ x ⇒ P)
-¬∃C←∀C¬ {x = nothing} e = λ z → z
-¬∃C←∀C¬ {x = just x} e = e
+¬∃C←∀C¬ = ?
 
 ¬∀C←∃C¬ : ∀ {A : Set} → {P : A → Set} → {x : Maybe A} → ∃C∈ x ⇒ (λ x → ¬ P x) → ¬ (∀C∈ x ⇒ P)
-¬∀C←∃C¬ {x = nothing} e = λ _ → e
-¬∀C←∃C¬ {x = just x} e = e
+¬∀C←∃C¬ = ?
 
 ¬∃C→∀C¬ : ∀ {A : Set} → {P : A → Set} → {x : Maybe A} → ¬ (∃C∈ x ⇒ P) → ∀C∈ x ⇒ (λ x → ¬ P x)
-¬∃C→∀C¬ {x = nothing} e = tt
-¬∃C→∀C¬ {x = just x} e = e
+¬∃C→∀C¬ = ?
 
 ¬∀C→∃C¬ : ∀ {A : Set} → {P : A → Set} → {x : Maybe A} → ¬ (∀C∈ x ⇒ P) → ∃C∈ x ⇒ (λ x → ¬ P x)
-¬∀C→∃C¬ {x = nothing} e = e tt
-¬∀C→∃C¬ {x = just x} e = e
+¬∀C→∃C¬ = ?
 
 -- Conjunction for universal and existential lifting of predicates
 conjunct∀ : ∀ {S : Set} → {A B : S → Set} → {x : Maybe S} → (∀C∈ x ⇒ A) → (∀C∈ x ⇒ B) → (∀C∈ x ⇒ (λ x → A x × B x))
@@ -227,3 +297,4 @@ lift-forall {μ = μ} x rewrite lift-unit {μ = μ} = x
 lift-nothing : ∀ {A} {P : A → Set}
              → ∀C∈ nothing ⇒ P
 lift-nothing = tt
+-}

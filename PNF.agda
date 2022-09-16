@@ -63,9 +63,10 @@ interleaved mutual
   at∃ : ∀ {A : Set} {n} → CounterpartTrace A → Assignment n A → PNF n → ℕ → Set
   at∀ : ∀ {A : Set} {n} → CounterpartTrace A → Assignment n A → PNF n → ℕ → Set
 
-  -- Shorthand expressing: "A counterpart for μ in σ after i steps is defined and satisfies ϕ"
+  -- Shorthand expressing: "There exists a counterpart for μ in σ after i steps that satisfies ϕ"
   at∃ σ μ ϕ i = ∃C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
-  -- Shorthand expressing: "If a counterpart for μ in σ after i steps is defined then it satisfies ϕ"
+
+  -- Shorthand expressing: "All counterparts for μ in σ after i steps satisfy ϕ"
   at∀ σ μ ϕ i = ∀C∈ ↑ (C≤ i σ) μ ⇒ (s i σ ,_⊨ ϕ)
 
   σ , μ ⊨ true = ⊤
