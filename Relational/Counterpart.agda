@@ -3,7 +3,7 @@
 {-
   Base definitions for counterpart-based semantics: models, traces, theorems and properties used in the main theorems relating semantics and negations.
 -}
-module Relation.Counterpart {ℓ} where
+module Relational.Counterpart {ℓ} where
 
 open import Data.Empty
 open import Data.Maybe
@@ -20,12 +20,8 @@ open import Relation.Binary.Construct.Composition using (_;_)
 open import Level renaming (suc to sucℓ)
 open import Function
 open import Data.Vec using (replicate)
-open import Axiom.Extensionality.Propositional using (Extensionality)
 
 open import VecT
-
-postulate
-  ext : Extensionality ℓ ℓ
 
 import Data.Unit
 open import Data.Unit.Polymorphic using (⊤)
@@ -108,12 +104,19 @@ open import Negation
 ∃→∩ : ∀ {A : Set ℓ} → {P A B : A → Set ℓ} → (∃C∈ P ⇒ (A ∩ B)) → (∃C∈ P ⇒ A) × (∃C∈ P ⇒ B) 
 ∃→∩ = λ { (fst , fst₁ , fst₂ , snd) → (fst , fst₁ , fst₂) , fst , fst₁ , snd }
 
-zip-id-right : ∀ {k} {A} {σ : CounterpartTrace A} {R B} {μ : Assignment k R} {μ′ : Assignment k B} {r}
+imply∃ : ∀ {A : Set ℓ} → {P Q Q′ : A → Set ℓ} → Q ⊆ Q′ → ∃C∈ P ⇒ Q → ∃C∈ P ⇒ Q′
+imply∃ x (a , b , c) = a , b , x c
+
+imply∀ : ∀ {A : Set ℓ} → {P Q Q′ : A → Set ℓ} → Q ⊆ Q′ → ∀C∈ P ⇒ Q → ∀C∈ P ⇒ Q′
+imply∀ x f = λ a pc → x (f a pc)
+
+-- Properties on zipping
+zip-id-right : ∀ {k} {R B} {μ : Assignment k R} {μ′ : Assignment k B} {r}
            → VecT.zip r μ μ′
            → VecT.zip (r ; _≡_) μ μ′ 
 zip-id-right = zip-imply λ x → _ , x , refl
 
-zip-id-right-inv : ∀ {k} {A} {σ : CounterpartTrace A} {R B} {μ : Assignment k R} {μ′ : Assignment k B} {r}
+zip-id-right-inv : ∀ {k} {R B} {μ : Assignment k R} {μ′ : Assignment k B} {r}
            → VecT.zip (r ; _≡_) μ μ′
            → VecT.zip r μ μ′ 
 zip-id-right-inv = zip-imply λ { (a , b , refl) → b }

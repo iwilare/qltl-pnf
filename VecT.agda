@@ -1,30 +1,16 @@
 module VecT where
 
-open import Data.Maybe using (Maybe)
-open import Data.Nat using (ℕ; _≤_; _<_)
-open import Data.Fin using (Fin; zero; suc)
-open import Function using ()
-open import Data.Sum using (_⊎_)
-open import Level using (Level; lift) renaming (suc to sucℓ)
-open import Data.Product using (∃-syntax; Σ-syntax; _×_; _,_; proj₁; proj₂; -,_; <_,_>)
-open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl; isEquivalence; sym; trans; cong; cong-app; cong₂)
-open import Level using (lift; _⊔_; lower)
-
-open import Data.Vec as Vec using (Vec; _∷_; [])
-open import Data.Vec.Membership.Propositional using (_∈_)
-open import Relation.Nullary using (¬_; Dec; yes; no)
-open import Data.List.Relation.Unary.Any using (here; there)
-
 import Data.Unit
+open import Data.Fin using (Fin; zero; suc)
+open import Data.Nat using (ℕ)
+open import Data.Product using (∃-syntax; Σ-syntax; _×_; _,_)
 open import Data.Unit.Polymorphic using (⊤)
-open import Data.Empty using (⊥-elim)
-open import Data.Empty.Polymorphic using (⊥)
-
-open import Relation.Binary.Construct.Composition using (_;_)
-open import Relation.Binary using (REL; Rel)
+open import Data.Vec as Vec using (Vec; _∷_; [])
+open import Function using (id; _∘_; flip)
+open import Level using (Level; lift)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 pattern * = lift Data.Unit.tt
-open Function using (id; _∘_; flip)
 
 private
   variable
@@ -32,99 +18,100 @@ private
     ℓ ℓ′ : Level
     A B : Set ℓ
     f g : A → Set ℓ
-    o : Vec A n
+    v : Vec A n
 
 mapT : (A → Set ℓ) → Vec A n → Set ℓ
 mapT f [] = ⊤
-mapT f (x ∷ v) = f x × mapT f v
+mapT f (x ∷ xs) = f x × mapT f xs
 
 zipT : (A → B → Set ℓ) → Vec A n → Vec B n → Set ℓ
-zipT f [] [] =  ⊤
-zipT f (x ∷ v) (x′ ∷ v′) = f x x′ × zipT f v v′
+zipT R [] [] =  ⊤
+zipT R (x ∷ xs) (y ∷ ys) = R x y × zipT R xs ys
 
 map : (∀ {x} → f x → g x)
-    → mapT f o → mapT g o
-map {o = []} a * = *
-map {o = _ ∷ _} a (x , v) = a x , map a v
+    → mapT f v → mapT g v
+map {v = []} p * = *
+map {v = _ ∷ _} p (x , xs) = p x , map p xs
 
 zip : (∀ {x} → f x → g x → Set ℓ′)
-    → mapT f o → mapT g o → Set ℓ′
-zip {o = []} a * * =  ⊤
-zip {o = _ ∷ _} a (x , v) (x′ , v′) = a x x′ × zip a v v′
+    → mapT f v → mapT g v → Set ℓ′
+zip {v = []} p * * = ⊤
+zip {v = _ ∷ _} p (x , xs) (y , ys) = p x y × zip p xs ys
+
+↑ = zip
 
 lookup : (i : Fin n)
-        → mapT f o
-        → f (Vec.lookup o i)
-lookup {o = _ ∷ _} zero (x , v) = x
-lookup {o = _ ∷ _} (suc i) (x , v) = lookup i v
+        → mapT f v
+        → f (Vec.lookup v i)
+lookup {v = _ ∷ _} zero (x , xs) = x
+lookup {v = _ ∷ _} (suc i) (x , xs) = lookup i xs
 
-_[_] : mapT f o
-     → (i : Fin n)
-     → f (Vec.lookup o i)
-v [ i ] = lookup i v
-
-lookup-zip : ∀ {f g : A → Set ℓ} {o : Vec A n} {v : mapT f o} {v′ : mapT g o} {ρ : ∀ {x} → f x → g x → Set ℓ}
+lookup-zip : ∀ {f g : A → Set ℓ} {v : Vec A n} {x : mapT f v} {y : mapT g v} {ρ : ∀ {x} → f x → g x → Set ℓ}
           → (i : Fin n)
-          → zip ρ v v′
-          → ρ (lookup i v) (lookup i v′)
-lookup-zip {o = _ ∷ _} zero (x , v) = x
-lookup-zip {o = _ ∷ _} (suc i) (x , v) = lookup-zip i v
+          → zip ρ x y
+          → ρ (lookup i x) (lookup i y)
+lookup-zip {v = _ ∷ _} zero (x , xs) = x
+lookup-zip {v = _ ∷ _} (suc i) (x , xs) = lookup-zip i xs
 
-zip-imply : ∀ {n} {o : Vec A n} {f g : (A → Set ℓ′)} {v : mapT f o} {v′ : mapT g o} {s t : (∀ {x} → f x → g x → Set ℓ′)}
-      → (∀ {m} {x y} → s {m} x y → t {m} x y)
-      → zip s v v′
-      → zip t v v′
-zip-imply {o = []} e * = *
-zip-imply {o = _ ∷ _} e (x , v) = e x , zip-imply e v
+zip-imply : ∀ {n ℓ} {A : Set ℓ} {v : Vec A n} {f g : (A → Set ℓ′)} {x : mapT f v} {y : mapT g v} {p r : (∀ {x} → f x → g x → Set ℓ′)}
+      → (∀ {m} {x y} → p {m} x y → r {m} x y)
+      → zip p x y
+      → zip r x y
+zip-imply {v = []} η * = *
+zip-imply {v = _ ∷ _} η (x , xs) = η x , zip-imply η xs
 
-zip-ext : ∀ {o : Vec A n} {f : (A → Set ℓ)} {v v′ : mapT f o}
-        → zip _≡_ v v′
-        → v ≡ v′
-zip-ext {o = []} {v = *} {v′ = *} * = refl
-zip-ext {o = _ ∷ _} {v = _ , _} {v′ = _ , _} (refl , v) rewrite zip-ext v = refl
+zip-ext : ∀ {v : Vec A n} {f : (A → Set ℓ)} {x y : mapT f v}
+        → zip _≡_ x y
+        → x ≡ y
+zip-ext {v = []} {x = *} {y = *} * = refl
+zip-ext {v = _ ∷ _} {x = _ , _} {y = _ , _} (refl , x) rewrite zip-ext x = refl
 
-zip-id : ∀ {o : Vec A n} {f : (A → Set ℓ)} {v : mapT f o}
-        → zip _≡_ v v
-zip-id {o = []} {v = *} = *
-zip-id {o = _ ∷ _} {v = _ , v} = refl , zip-id {v = v}
+zip-id : ∀ {v : Vec A n} {f : (A → Set ℓ)} {x : mapT f v}
+        → zip _≡_ x x
+zip-id {v = []} {x = *} = *
+zip-id {v = _ ∷ _} {x = _ , xs} = refl , zip-id {x = xs}
 
-map-cong : ∀ {o : Vec A n} {f g : A → Set ℓ} {v : mapT f o} {f g : (∀ {x} → f x → g x)}
+map-cong : ∀ {v : Vec A n} {f g : A → Set ℓ} {x : mapT f v} {f g : (∀ {x} → f x → g x)}
           → (e : ∀ {x} σ → f {x} σ ≡ g {x} σ)
-          → map f v ≡ map g v
-map-cong {o = []} e = refl
-map-cong {o = _ ∷ _} {v = x , v} e rewrite e x | map-cong {v = v} e = refl
+          → map f x ≡ map g x
+map-cong {v = []} e = refl
+map-cong {v = _ ∷ _} {x = x , xs} e rewrite e x | map-cong {x = xs} e = refl
 
-map-comp : ∀ {o : Vec A n} {i j k : A → Set ℓ} {v : mapT i o} {f : (∀ {x} → j x → k x)} {g : (∀ {x} → i x → j x)}
-          → map (f ∘ g) v ≡ map f (map g v)
-map-comp {o = []} = refl
-map-comp {o = x ∷ o} {v = _ , v} {f = f} {g = g} rewrite map-comp {v = v} {f = f} {g = g} = refl
+map-comp : ∀ {v : Vec A n} {i j k : A → Set ℓ} {x : mapT i v} {f : (∀ {x} → j x → k x)} {g : (∀ {x} → i x → j x)}
+          → map (f ∘ g) x ≡ map f (map g x)
+map-comp {v = []} = refl
+map-comp {v = _ ∷ _} {x = _ , xs} {f = f} {g = g} rewrite map-comp {x = xs} {f = f} {g = g} = refl
 
-map-id : ∀ {o : Vec A n} {f : A → Set ℓ} {v : mapT f o}
-        → map id v ≡ v
-map-id {o = []} = refl
-map-id {o = _ ∷ _} {v = _ , v} rewrite map-id {v = v}= refl
+map-id : ∀ {v : Vec A n} {f : A → Set ℓ} {x : mapT f v}
+        → map id x ≡ x
+map-id {v = []} = refl
+map-id {v = _ ∷ _} {x = _ , xs} rewrite map-id {x = xs} = refl
 
-zip-rel-decomp : ∀ {o : Vec A n} {f g h : (A → Set ℓ)} {x : mapT g o} {y : mapT h o}
-        → {s : (∀ {x} → g x → f x → Set ℓ)}
-        → {t : (∀ {x} → f x → h x → Set ℓ)}
-        → zip (λ x y → ∃[ a ] (s x a × t a y)) x y
-        → Σ[ a ∈ mapT f o ] (zip s x a × zip t a y)
-zip-rel-decomp {o = []} * = * , * , *
-zip-rel-decomp {o = _ ∷ _} (x , v) with zip-rel-decomp v | x
-... | f , g , h | a , x , y = (a , f)
-              , (x , g) , (y , h)
+zip-rel-decomp : ∀ {v : Vec A n} {f g h : (A → Set ℓ)} {x : mapT g v} {y : mapT h v}
+        → {p : (∀ {x} → g x → f x → Set ℓ)}
+        → {r : (∀ {x} → f x → h x → Set ℓ)}
+        → zip (λ x y → ∃[ a ] (p x a × r a y)) x y
+        → Σ[ a ∈ mapT f v ] (zip p x a × zip r a y)
+zip-rel-decomp {v = []} * = * , * , *
+zip-rel-decomp {v = _ ∷ _} (x , xs) with zip-rel-decomp xs | x
+... | f , g , h | a , x , y = (a , f) , (x , g) , (y , h)
 
-zip-rel-comp : ∀ {o : Vec A n} {f g h : (A → Set ℓ)} {a : mapT f o} {x : mapT g o} {y : mapT h o}
+zip-rel-comp : ∀ {v : Vec A n} {f g h : (A → Set ℓ)} {a : mapT f v} {x : mapT g v} {y : mapT h v}
         → {s : (∀ {x} → g x → f x → Set ℓ)}
         → {t : (∀ {x} → f x → h x → Set ℓ)}
         → zip s x a → zip t a y
         → zip (λ x y → ∃[ a ] (s x a × t a y)) x y
-zip-rel-comp {o = []} * * = *
-zip-rel-comp {o = _ ∷ _} (x , v) (x′ , v′) = (_ , x , x′) , zip-rel-comp v v′
+zip-rel-comp {v = []} * * = *
+zip-rel-comp {v = _ ∷ _} (x , xs) (y , ys) = (_ , x , y) , zip-rel-comp xs ys
 
-op : ∀ {o : Vec A n} {f g : (A → Set ℓ)} {x : mapT f o} {y : mapT g o}
+op : ∀ {v : Vec A n} {f g : (A → Set ℓ)} {x : mapT f v} {y : mapT g v}
     → {f : (∀ {x} → f x → g x → Set ℓ′)}
     → zip f        x y
     → zip (flip f) y x
-op {o = []} * = *
-op {o = _ ∷ _} (x , v) = x , (op v)
+op {v = []} * = *
+op {v = _ ∷ _} (x , xs) = x , op xs 
+
+_[_] : mapT f v
+     → (i : Fin n)
+     → f (Vec.lookup v i)
+v [ i ] = lookup i v

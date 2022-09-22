@@ -19,7 +19,7 @@ data QLTL : ℕ → Set where
 
 infix 25 _∨_
 infix 30 _U_ _W_
-infix 35 ∃<>_ 
+infix 35 ∃<>_
 infix 40 ◯_ ♢_ □_
 infix 45 !_
 infix 50 _==_

@@ -3,7 +3,7 @@
 {-
   Negation for the temporal operators in full QLTL.
 -}
-module Relation.QLTL.Full.Negation where
+module Relational.Negation where
 
 open import Data.Product
 open import Data.Sum
@@ -13,8 +13,8 @@ open import Relation.Binary.Definitions
 open import Relation.Binary.PropositionalEquality using (refl)
 open import Data.Nat.Properties using (≤⇒≤′; ≤⇒≤‴; <-transˡ; <-trans; <⇒≤; <-cmp; ≤-<-connex)
 
-open import Relation.Counterpart
-open import Relation.QLTL.Full.Semantics
+open import Relational.Counterpart
+open import Relational.QLTL-Full
 open import Predicates
 open import Negation
 
