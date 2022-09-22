@@ -1,6 +1,6 @@
 ## Positive normal forms for counterpart-based temporal logics
 
-This repository contains the Agda definitions and proofs to present a positive normal form for a quantified linear temporal logic QLTL. Two counterpart flavours are defined here, one with partial functions and one with standard relations.
+This repository contains the Agda definitions and proofs to present a positive normal form for a quantified linear temporal logic QLTL based on counterpart semantics in the sense of Lewis. Two counterpart flavours are defined here, one with partial functions and one with standard relations.
 
 ## Remarks
 
