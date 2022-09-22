@@ -36,6 +36,22 @@ U-equivalence {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
     ⇐ (inj₁ u , _) = u
     ⇐ (inj₂ a , n , _ , ϕ₂n) = n , (λ i _ → a i) , ϕ₂n
 
+F-equivalence : ∀ {n} {ϕ₁ ϕ₂ : QLTL-Full n} → ϕ₁ F ϕ₂ ≣ ϕ₁ T ϕ₂ ∧ ♢* ϕ₂
+F-equivalence {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
+  where
+
+    ⇒ : σ , μ ⊨ ϕ₁ F ϕ₂ → σ , μ ⊨ ϕ₁ T ϕ₂ ∧ ♢* ϕ₂
+    ⇒ (n , ϕ₁<i , ϕ₂n) = inj₁ (n , ϕ₁<i , ϕ₂n) , n , true-before-n , ϕ₂n
+      where
+        true-before-n : _
+        true-before-n i x with ↑ (C≤ i σ) μ
+        ... | nothing = tt
+        ... | just μ = tt
+
+    ⇐ : σ , μ ⊨ ϕ₁ T ϕ₂ ∧ ♢* ϕ₂ → σ , μ ⊨ ϕ₁ F ϕ₂
+    ⇐ (inj₁ u , _) = u
+    ⇐ (inj₂ a , n , _ , ϕ₂n) = n , (λ i _ → a i) , ϕ₂n
+    
 W-equivalence : ∀ {n} {ϕ₁ ϕ₂ : QLTL-Full n} → ϕ₁ W ϕ₂ ≣ ϕ₁ U ϕ₂ ∨ □ ϕ₁
 W-equivalence {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
   where
@@ -64,19 +80,3 @@ T-equivalence {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
        where ∀ϕ₂ : ∀C∈ ↑ (C≤ n σ) μ ⇒ (s n σ ,_⊨ ϕ₂)
              ∀ϕ₂ rewrite eq = tt
     ⇐ (inj₂ (inj₂ y)) = inj₂ y
-
-F-equivalence : ∀ {n} {ϕ₁ ϕ₂ : QLTL-Full n} → ϕ₁ F ϕ₂ ≣ ϕ₁ T ϕ₂ ∧ ♢* ϕ₂
-F-equivalence {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
-  where
-
-    ⇒ : σ , μ ⊨ ϕ₁ F ϕ₂ → σ , μ ⊨ ϕ₁ T ϕ₂ ∧ ♢* ϕ₂
-    ⇒ (n , ϕ₁<i , ϕ₂n) = inj₁ (n , ϕ₁<i , ϕ₂n) , n , true-before-n , ϕ₂n
-      where
-        true-before-n : _
-        true-before-n i x with ↑ (C≤ i σ) μ
-        ... | nothing = tt
-        ... | just μ = tt
-
-    ⇐ : σ , μ ⊨ ϕ₁ T ϕ₂ ∧ ♢* ϕ₂ → σ , μ ⊨ ϕ₁ F ϕ₂
-    ⇐ (inj₁ u , _) = u
-    ⇐ (inj₂ a , n , _ , ϕ₂n) = n , (λ i _ → a i) , ϕ₂n

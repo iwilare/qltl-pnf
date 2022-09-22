@@ -58,7 +58,7 @@ F-negation {σ = σ} {μ = μ} =
                                                                        (¬∀C→∃C¬ {x = ↑ (C≤ i σ) μ} p2))
                        (¬until→weakUntil x)) ,
   (λ x → ¬until←weakUntil (congWeakUntil (λ {i} → ¬∀C←∃C¬ {x = ↑ (C≤ i σ) μ})
-                                         (λ {i} x → let a , b = (disjunct∃ {x = ↑ (C≤ i σ) μ} x) in ¬∀C←∃C¬ {x = ↑ (C≤ i σ) μ} a , ¬∀C←∃C¬ {x = ↑ (C≤ i σ) μ} b)
+                                         (λ {i} x → let a , b = (∃→∩ {x = ↑ (C≤ i σ) μ} x) in ¬∀C←∃C¬ {x = ↑ (C≤ i σ) μ} a , ¬∀C←∃C¬ {x = ↑ (C≤ i σ) μ} b)
                                          x))
 
 T-negation : ∀ {n} {ϕ₁ ϕ₂ : QLTL-Full n} → ! (ϕ₁ T ϕ₂) ≣ (! ϕ₂) U (! ϕ₁ ∧ ! ϕ₂)
@@ -68,7 +68,7 @@ T-negation {σ = σ} {μ = μ} =
                                                                        (¬∀C→∃C¬ {x = ↑ (C≤ i σ) μ} p2))
                        (¬weakUntil→until x)) ,
   (λ x → ¬weakUntil←until (congUntil (λ {i} → ¬∀C←∃C¬ {x = ↑ (C≤ i σ) μ})
-                                         (λ {i} x → let a , b = (disjunct∃ {x = ↑ (C≤ i σ) μ} x) in ¬∀C←∃C¬ {x = ↑ (C≤ i σ) μ} a , ¬∀C←∃C¬ {x = ↑ (C≤ i σ) μ} b)
+                                         (λ {i} x → let a , b = (∃→∩ {x = ↑ (C≤ i σ) μ} x) in ¬∀C←∃C¬ {x = ↑ (C≤ i σ) μ} a , ¬∀C←∃C¬ {x = ↑ (C≤ i σ) μ} b)
                                          x))
 
 □-negation : ∀ {n} {ϕ : QLTL-Full n} → ! (□ ϕ) ≣ ♢* (! ϕ)

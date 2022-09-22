@@ -20,12 +20,11 @@ open import Relation.Nullary
 -- For simplicity, we do not consider models in full, and directly work with counterpart traces.
 -- Each trace defines autonomously the set of Assignment it works on pointwise.
 record CounterpartTrace (A : Set) : Set₁ where
-  constructor _∷_
   coinductive
   field
-    {B}    : Set
-    rel    : A → Maybe B
-    tail   : CounterpartTrace B
+    {B}  : Set
+    rel  : A → Maybe B
+    tail : CounterpartTrace B
 
 open CounterpartTrace public
 

@@ -50,57 +50,6 @@ U-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
                  ; (suc i) (_≤_.s≤s x) → subst (λ p → ∃C∈ p ⇒ _) (switch-tail-suc {σ = σ} {n = i} {μ = μ} eq) (1<ϕ₁<i i x) })
             , subst (λ p → ∃C∈ p ⇒ _) (switch-tail-suc {σ = σ} {n = n} {μ = μ} eq) n|ϕ₂
 
-W-expansion-law : ∀ {n} {ϕ₁ ϕ₂ : QLTL-Full n} → ϕ₁ W ϕ₂ ≣ ϕ₂ ∨ (ϕ₁ ∧ ◯ (ϕ₁ W ϕ₂))
-W-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
-  where
-    ⇒ : σ , μ ⊨ ϕ₁ W ϕ₂ → σ , μ ⊨ ϕ₂ ∨ (ϕ₁ ∧ ◯ (ϕ₁ W ϕ₂))
-    ⇒ (inj₁ x) with U-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ}
-    ... | ⇒ , ⇐ with ⇒ x
-    ... | inj₁ x₁ = inj₁ x₁
-    ... | inj₂ (ϕ₁ , u) with ↑ (C≤ 1 σ) μ
-    ... | just x₁ = inj₂ (ϕ₁ , inj₁ u)
-    ⇒ (inj₂ y) with ↑ (C≤ 1 σ) μ | inspect (↑ (C≤ 1 σ)) μ
-    ... | just x | ≣: eq = inj₂ (subst (λ p → ∃C∈ p ⇒ _) (lift-unit {μ = μ}) (y 0) , inj₂ λ i → subst (λ p → ∃C∈ p ⇒ _) (sym (switch-tail-suc {σ = σ} {n = i} {μ = μ} eq)) (y (suc i)))
-    ... | nothing | ≣: eq with ↑ (C≤ 1 σ) μ | y 1
-    ... | nothing | ()
-    ⇒ (inj₂ y) | nothing | ≣: () | just x | r
-
-    ⇐ : σ , μ ⊨ ϕ₂ ∨ (ϕ₁ ∧ ◯ (ϕ₁ W ϕ₂)) → σ , μ ⊨ ϕ₁ W ϕ₂
-    ⇐ (inj₁ x) = inj₁ (0 , (λ i ()) , lift-exists {μ = μ} x)
-    ⇐ (inj₂ (ϕ₁μ , u)) with U-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ}
-    ... | ⇒ , u⇐ with ↑ (C≤ 1 σ) μ | inspect (↑ (C≤ 1 σ)) μ
-    ⇐ (inj₂ (ϕ₁μ , inj₁ u)) | ⇒ , u⇐ | just x | ≣: eq = inj₁ (u⇐ (inj₂ (ϕ₁μ , u)))
-    ⇐ (inj₂ (ϕ₁μ , inj₂ y)) | ⇒ , u⇐ | just x | ≣: eq = inj₂ a
-        where a : ∀ i → ∃C∈ ↑ (C≤ i σ) μ ⇒ _
-              a zero = lift-exists {μ = μ} ϕ₁μ
-              a (suc i) with y i
-              ... | p rewrite switch-tail-suc {σ = σ} {n = i} {μ = μ} eq = p
-
-♢-expansion-law : ∀ {n} {ϕ : QLTL-Full n} → ♢ ϕ ≣ ϕ ∨ ◯ (♢ ϕ)
-♢-expansion-law {_} {ϕ} {_} {σ} {μ} with U-expansion-law {_} {true} {ϕ} {_} {σ} {μ}
-... | U⇒ , U⇐ = ⇒ , ⇐
-  where
-    ⇒ : σ , μ ⊨ ♢ ϕ → σ , μ ⊨ (ϕ ∨ (◯ (♢ ϕ)))
-    ⇒ x with U⇒ x
-    ... | inj₁ x₁ = inj₁ x₁
-    ... | inj₂ (tt , a) = inj₂ a
-
-    ⇐ : σ , μ ⊨ (ϕ ∨ (◯ (♢ ϕ))) → σ , μ ⊨ ♢ ϕ
-    ⇐ (inj₁ x) = 0 , (λ i ()) , lift-exists {μ = μ} x
-    ⇐ (inj₂ y) = U⇐ (inj₂ (tt , y))
-
-□-expansion-law : ∀ {n} {ϕ : QLTL-Full n} → □ ϕ ≣ ϕ ∧ ◯ (□ ϕ)
-□-expansion-law {_} {ϕ} {_} {σ} {μ} with W-expansion-law {_} {ϕ} {false} {_} {σ} {μ}
-... | W⇒ , W⇐ = ⇒ , ⇐
-  where
-    ⇒ : σ , μ ⊨ □ ϕ → σ , μ ⊨ (ϕ ∧ (◯ (□ ϕ)))
-    ⇒ x with W⇒ x
-    ... | inj₁ ()
-    ... | inj₂ r = r
-
-    ⇐ : σ , μ ⊨ (ϕ ∧ (◯ (□ ϕ))) → σ , μ ⊨ □ ϕ
-    ⇐ e = W⇐ (inj₂ e)
-    
 F-expansion-law : ∀ {n} {ϕ₁ ϕ₂ : QLTL-Full n} → ϕ₁ F ϕ₂ ≣ ϕ₂ ∨ (ϕ₁ ∧ A (ϕ₁ F ϕ₂))
 F-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
   where
@@ -128,6 +77,32 @@ F-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
       suc n , (λ { zero x → lift-forall {μ = μ} μ|ϕ₁
                  ; (suc i) (_≤_.s≤s x) → subst (λ p → ∀C∈ p ⇒ _) (switch-tail-suc {σ = σ} {n = i} {μ = μ} eq) (1<ϕ₁<i i x) })
             , subst (λ p → ∀C∈ p ⇒ _) (switch-tail-suc {σ = σ} {n = n} {μ = μ} eq) n|ϕ₂
+
+W-expansion-law : ∀ {n} {ϕ₁ ϕ₂ : QLTL-Full n} → ϕ₁ W ϕ₂ ≣ ϕ₂ ∨ (ϕ₁ ∧ ◯ (ϕ₁ W ϕ₂))
+W-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
+  where
+    ⇒ : σ , μ ⊨ ϕ₁ W ϕ₂ → σ , μ ⊨ ϕ₂ ∨ (ϕ₁ ∧ ◯ (ϕ₁ W ϕ₂))
+    ⇒ (inj₁ x) with U-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ}
+    ... | ⇒ , ⇐ with ⇒ x
+    ... | inj₁ x₁ = inj₁ x₁
+    ... | inj₂ (ϕ₁ , u) with ↑ (C≤ 1 σ) μ
+    ... | just x₁ = inj₂ (ϕ₁ , inj₁ u)
+    ⇒ (inj₂ y) with ↑ (C≤ 1 σ) μ | inspect (↑ (C≤ 1 σ)) μ
+    ... | just x | ≣: eq = inj₂ (subst (λ p → ∃C∈ p ⇒ _) (lift-unit {μ = μ}) (y 0) , inj₂ λ i → subst (λ p → ∃C∈ p ⇒ _) (sym (switch-tail-suc {σ = σ} {n = i} {μ = μ} eq)) (y (suc i)))
+    ... | nothing | ≣: eq with ↑ (C≤ 1 σ) μ | y 1
+    ... | nothing | ()
+    ⇒ (inj₂ y) | nothing | ≣: () | just x | r
+
+    ⇐ : σ , μ ⊨ ϕ₂ ∨ (ϕ₁ ∧ ◯ (ϕ₁ W ϕ₂)) → σ , μ ⊨ ϕ₁ W ϕ₂
+    ⇐ (inj₁ x) = inj₁ (0 , (λ i ()) , lift-exists {μ = μ} x)
+    ⇐ (inj₂ (ϕ₁μ , u)) with U-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ}
+    ... | ⇒ , u⇐ with ↑ (C≤ 1 σ) μ | inspect (↑ (C≤ 1 σ)) μ
+    ⇐ (inj₂ (ϕ₁μ , inj₁ u)) | ⇒ , u⇐ | just x | ≣: eq = inj₁ (u⇐ (inj₂ (ϕ₁μ , u)))
+    ⇐ (inj₂ (ϕ₁μ , inj₂ y)) | ⇒ , u⇐ | just x | ≣: eq = inj₂ a
+        where a : ∀ i → ∃C∈ ↑ (C≤ i σ) μ ⇒ _
+              a zero = lift-exists {μ = μ} ϕ₁μ
+              a (suc i) with y i
+              ... | p rewrite switch-tail-suc {σ = σ} {n = i} {μ = μ} eq = p
 
 T-expansion-law : ∀ {n} {ϕ₁ ϕ₂ : QLTL-Full n} → ϕ₁ T ϕ₂ ≣ ϕ₂ ∨ (ϕ₁ ∧ A (ϕ₁ T ϕ₂))
 T-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
@@ -158,6 +133,31 @@ T-expansion-law {_} {ϕ₁} {ϕ₂} {_} {σ} {μ} = ⇒ , ⇐
               a zero = lift-forall {μ = μ} ϕ₁μ
               a (suc i) rewrite del-counterparts {σ = σ} {n = i} {μ = μ} eq = tt
 
+♢-expansion-law : ∀ {n} {ϕ : QLTL-Full n} → ♢ ϕ ≣ ϕ ∨ ◯ (♢ ϕ)
+♢-expansion-law {_} {ϕ} {_} {σ} {μ} with U-expansion-law {_} {true} {ϕ} {_} {σ} {μ}
+... | U⇒ , U⇐ = ⇒ , ⇐
+  where
+    ⇒ : σ , μ ⊨ ♢ ϕ → σ , μ ⊨ (ϕ ∨ (◯ (♢ ϕ)))
+    ⇒ x with U⇒ x
+    ... | inj₁ x₁ = inj₁ x₁
+    ... | inj₂ (tt , a) = inj₂ a
+
+    ⇐ : σ , μ ⊨ (ϕ ∨ (◯ (♢ ϕ))) → σ , μ ⊨ ♢ ϕ
+    ⇐ (inj₁ x) = 0 , (λ i ()) , lift-exists {μ = μ} x
+    ⇐ (inj₂ y) = U⇐ (inj₂ (tt , y))
+
+□-expansion-law : ∀ {n} {ϕ : QLTL-Full n} → □ ϕ ≣ ϕ ∧ ◯ (□ ϕ)
+□-expansion-law {_} {ϕ} {_} {σ} {μ} with W-expansion-law {_} {ϕ} {false} {_} {σ} {μ}
+... | W⇒ , W⇐ = ⇒ , ⇐
+  where
+    ⇒ : σ , μ ⊨ □ ϕ → σ , μ ⊨ (ϕ ∧ (◯ (□ ϕ)))
+    ⇒ x with W⇒ x
+    ... | inj₁ ()
+    ... | inj₂ r = r
+
+    ⇐ : σ , μ ⊨ (ϕ ∧ (◯ (□ ϕ))) → σ , μ ⊨ □ ϕ
+    ⇐ e = W⇐ (inj₂ e)
+    
 ♢*-expansion-law : ∀ {n} {ϕ : QLTL-Full n} → ♢* ϕ ≣ ϕ ∨ A (♢* ϕ)
 ♢*-expansion-law {_} {ϕ} {_} {σ} {μ} with F-expansion-law {_} {true} {ϕ} {_} {σ} {μ}
 ... | F⇒ , F⇐ = ⇒ , ⇐

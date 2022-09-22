@@ -34,12 +34,11 @@ Relation A B = REL A B ℓ
 -- For simplicity, we do not consider models in full, and directly work with counterpart traces.
 -- Each trace defines autonomously the set of Assignment it works on pointwise.
 record CounterpartTrace (A : Set ℓ) : Set (sucℓ ℓ) where
-  constructor _∷_
   coinductive
   field
-    {B}    : Set ℓ
-    rel    : Relation A B
-    tail   : CounterpartTrace B
+    {B}  : Set ℓ
+    rel  : Relation A B
+    tail : CounterpartTrace B
 
 open CounterpartTrace public
 
