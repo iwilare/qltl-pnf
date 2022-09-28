@@ -2,6 +2,8 @@
 
 This repository contains the Agda definitions and proofs to present a positive normal form for a quantified linear temporal logic QLTL based on counterpart semantics in the sense of Lewis. Two counterpart flavours are defined here, one with partial functions and one with standard relations.
 
+For a categorical presentation of this logic see [https://github.com/iwilare/categorical-qtl](https://github.com/iwilare/categorical-qtl).  
+
 ## Remarks
 
 Formulas use a representation based on de Bruijn indices to ensure well-scopedness[^1]. Each formula is typed with a number `n : ℕ`, indicating the size of the underlying context in which the formula is defined. This is such that `n` is greater than the cardinality of the set of free variables of the formula, and is thus sufficient to ensure that the formula is well-scoped by construction. For example, in PNF the formula `∃x. x = y` is represented as:
